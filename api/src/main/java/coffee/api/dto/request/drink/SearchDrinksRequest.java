@@ -9,6 +9,7 @@ import lombok.Data;
 
 @Data
 public class SearchDrinksRequest {
+
   @Min(value = 1, message = ValidationMessage.Msg.PAGE_MIN)
   private int page = 1;
 
@@ -19,10 +20,10 @@ public class SearchDrinksRequest {
   private String search;
 
   @Pattern(
-    regexp = "^(drinkId|drinkName|price|imageUrl|status|isDeleted)$",
+    regexp = "^(drinkId|drinkCategoryId|drinkName|size|price|status|createdAt|updatedAt|isDeleted)$",
     message = ValidationMessage.Msg.SORT_BY_INVALID
   )
-  private String sortBy = "drinkId";
+  private String sortBy = "drinkId"; // Giá trị mặc định nếu client không truyền
 
   private SortDirection sortDirection = SortDirection.ASC;
 
@@ -37,9 +38,5 @@ public class SearchDrinksRequest {
   public String trimmedSearch() {
     if (search == null || search.isBlank()) return null;
     return search.trim();
-  }
-
-  public String directionValue() {
-    return sortDirection == null ? "ASC" : sortDirection.getValue();
   }
 }

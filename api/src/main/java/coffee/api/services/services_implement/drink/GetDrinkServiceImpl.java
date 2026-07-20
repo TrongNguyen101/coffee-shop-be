@@ -16,37 +16,37 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GetDrinkServiceImpl implements IGetDrinkService {
 
-    private final GetDrinksRepository getDrinksRepository;
+  private final GetDrinksRepository getDrinksRepository;
 
-    @Override
-    public PageResponse<DrinkResult> process(SearchDrinksRequest request) {
-        long totalElements = getDrinksRepository.countDrinksFiltered(
-                request.trimmedSearch(),
-                null,
-                null
-        );
+  @Override
+  public PageResponse<DrinkResult> process(SearchDrinksRequest request) {
+    long totalElements = getDrinksRepository.countDrinksFiltered(
+      request.trimmedSearch(),
+      null,
+      null
+    );
 
-        List<DrinkResult> drinks = getDrinksRepository.getDrinksFiltered(
-                request.trimmedSearch(),
-                request.getSortBy(),
-                request.getSortDirection().toString(),
-                request.getSize(),
-                request.calcOffset(),
-                null,
-                null
-        );
+    List<DrinkResult> drinks = getDrinksRepository.getDrinksFiltered(
+      request.trimmedSearch(),
+      request.getSortBy(),
+      request.getSortDirection().toString(),
+      request.getSize(),
+      request.calcOffset(),
+      null,
+      null
+    );
 
-        if (drinks == null) {
-            drinks = Collections.emptyList();
-        }
-
-        PaginationMeta pagination = PaginationMeta.builder()
-                .page(request.getPage())
-                .size(request.getSize())
-                .totalElements(totalElements)
-                .totalPages(request.totalPages(totalElements))
-                .build();
-
-        return PageResponse.of("Get drinks successfully", drinks, pagination);
+    if (drinks == null) {
+      drinks = Collections.emptyList();
     }
+
+    PaginationMeta pagination = PaginationMeta.builder()
+      .page(request.getPage())
+      .size(request.getSize())
+      .totalElements(totalElements)
+      .totalPages(request.totalPages(totalElements))
+      .build();
+
+    return PageResponse.of("Get drinks successfully", drinks, pagination);
+  }
 }

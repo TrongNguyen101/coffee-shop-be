@@ -1,8 +1,8 @@
-package coffee.api.dto.response.drink;
+package coffee.api.dto.response.category;
 
-import coffee.api.dto.result.DrinkResult;
 import coffee.api.dto.response.base_response.BaseApiResponse;
 import coffee.api.dto.response.base_response.PageResponse;
+import coffee.api.dto.result.CategoryResult;
 import coffee.api.enums.ResponseCode;
 import coffee.api.utils.MdcUtil;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -16,31 +16,31 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @JsonPropertyOrder({"code", "message", "errorDetails", "traceId"})
-public class GetDrinkResponse extends BaseApiResponse {
-  private PageResponse<DrinkResult> drinks;
+public class GetCategoryResponse extends BaseApiResponse {
+  private PageResponse<CategoryResult> categories;
 
-  public static GetDrinkResponse of(
+  public static GetCategoryResponse of(
     ResponseCode responseCode,
     String message
   ) {
-    return GetDrinkResponse.builder()
+    return GetCategoryResponse.builder()
       .code(responseCode.getCode())
       .message(message)
-      .traceId(MdcUtil.getTraceId())
-      .drinks(null)
+      .categories(null)
+      .traceId(null)
       .build();
   }
 
-  public static GetDrinkResponse of(
+  public static GetCategoryResponse of(
     ResponseCode responseCode,
     String message,
-    PageResponse<DrinkResult> drinks
+    PageResponse<CategoryResult> categories
   ) {
-    return GetDrinkResponse.builder()
+    return GetCategoryResponse.builder()
       .code(responseCode.getCode())
       .message(message)
       .traceId(MdcUtil.getTraceId())
-      .drinks(drinks)
+      .categories(categories)
       .build();
   }
 }

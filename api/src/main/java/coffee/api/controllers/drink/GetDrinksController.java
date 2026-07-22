@@ -1,4 +1,4 @@
-package coffee.api.controllers.common;
+package coffee.api.controllers.drink;
 
 import coffee.api.dto.request.drink.SearchDrinksRequest;
 import coffee.api.dto.response.base_response.PageResponse;

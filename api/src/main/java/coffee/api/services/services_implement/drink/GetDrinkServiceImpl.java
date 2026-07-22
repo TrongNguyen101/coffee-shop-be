@@ -15,7 +15,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class GetDrinkServiceImpl implements IGetDrinkService {
-
   private final GetDrinksRepository getDrinksRepository;
 
   @Override

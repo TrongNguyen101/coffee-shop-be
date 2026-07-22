@@ -1,8 +1,9 @@
-package coffee.api.dto.response.base_response;
+package coffee.api.dto.response.dropdown;
 
+import coffee.api.dto.response.base_response.BaseApiResponse;
+import coffee.api.dto.result.RoleResult;
 import coffee.api.enums.ResponseCode;
 import coffee.api.utils.MdcUtil;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,33 +16,33 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "code", "message", "errorDetails", "traceId" })
-public class ErrorApiResponse extends BaseApiResponse {
-  private List<ErrorDetail> errorDetails;
+public class RoleResponse extends BaseApiResponse {
+  private List<RoleResult> roleResult;
 
-  public static ErrorApiResponse of(
+  public static RoleResponse of(
     ResponseCode responseCode,
     String message
   ) {
-    return ErrorApiResponse.builder()
+    return RoleResponse.builder()
       .code(responseCode.getCode())
       .message(message)
-      .errorDetails(null)
       .traceId(MdcUtil.getTraceId())
+      .roleResult(null)
       .build();
   }
 
-  public static ErrorApiResponse of(
+  // Update this to accept List<RoleResult> instead of a single element
+  public static RoleResponse of(
     ResponseCode responseCode,
     String message,
-    List<ErrorDetail> errorDetails
+    List<RoleResult> roleResult
   ) {
-    return ErrorApiResponse.builder()
+    return RoleResponse.builder()
       .code(responseCode.getCode())
       .message(message)
-      .errorDetails(errorDetails)
       .traceId(MdcUtil.getTraceId())
+      .roleResult(roleResult)
       .build();
   }
 }

@@ -1,8 +1,9 @@
-package coffee.api.dto.response.base_response;
+package coffee.api.dto.response.dropdown;
 
+import coffee.api.dto.response.base_response.BaseApiResponse;
+import coffee.api.dto.result.ShopNameResult;
 import coffee.api.enums.ResponseCode;
 import coffee.api.utils.MdcUtil;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,33 +16,32 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "code", "message", "errorDetails", "traceId" })
-public class ErrorApiResponse extends BaseApiResponse {
-  private List<ErrorDetail> errorDetails;
+public class ShopNameResponse extends BaseApiResponse {
+  private List<ShopNameResult> shopNameResults;
 
-  public static ErrorApiResponse of(
+  public static ShopNameResponse of(
     ResponseCode responseCode,
     String message
   ) {
-    return ErrorApiResponse.builder()
+    return ShopNameResponse.builder()
       .code(responseCode.getCode())
       .message(message)
-      .errorDetails(null)
       .traceId(MdcUtil.getTraceId())
+      .shopNameResults(null)
       .build();
   }
 
-  public static ErrorApiResponse of(
+  public static ShopNameResponse of(
     ResponseCode responseCode,
     String message,
-    List<ErrorDetail> errorDetails
+    List<ShopNameResult> shopNameResults
   ) {
-    return ErrorApiResponse.builder()
+    return ShopNameResponse.builder()
       .code(responseCode.getCode())
       .message(message)
-      .errorDetails(errorDetails)
       .traceId(MdcUtil.getTraceId())
+      .shopNameResults(shopNameResults)
       .build();
   }
 }

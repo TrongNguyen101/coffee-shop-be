@@ -1,10 +1,10 @@
-package coffee.api.services;
+package coffee.api.services.drink;
 
 import coffee.api.dto.request.drink.SearchDrinksRequest;
 import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.result.DrinkResult;
 import coffee.api.enums.SortDirection;
-import coffee.api.repository.drink.GetDrinksRepository;
+import coffee.api.mapper.GetDrinksMapper;
 import coffee.api.services.services_implement.drink.GetDrinkServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 public class GetDrinkServiceImplTest {
 
   @Mock
-  private GetDrinksRepository getDrinksRepository;
+  private GetDrinksMapper getDrinksMapper;
 
   @InjectMocks
   private GetDrinkServiceImpl getDrinkService;
@@ -85,8 +85,8 @@ public class GetDrinkServiceImplTest {
   @Test
   void process_SuccessWithSingleItem_TC001() {
     defaultRequest.setSearch("Cà Phê Sữa Đá");
-    when(getDrinksRepository.countDrinksFiltered(anyString(), any(), any())).thenReturn(1L);
-    when(getDrinksRepository.getDrinksFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.singletonList(drinkResultSizeS));
+    when(getDrinksMapper.countDrinksFiltered(anyString(), any(), any())).thenReturn(1L);
+    when(getDrinksMapper.getDrinksFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.singletonList(drinkResultSizeS));
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -106,8 +106,8 @@ public class GetDrinkServiceImplTest {
   @Test
   void process_SuccessWithMultipleSizes_TC002() {
     defaultRequest.setSearch("Cà Phê Sữa Đá");
-    when(getDrinksRepository.countDrinksFiltered(anyString(), any(), any())).thenReturn(2L);
-    when(getDrinksRepository.getDrinksFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any())).thenReturn(Arrays.asList(drinkResultSizeS, drinkResultSizeM));
+    when(getDrinksMapper.countDrinksFiltered(anyString(), any(), any())).thenReturn(2L);
+    when(getDrinksMapper.getDrinksFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any())).thenReturn(Arrays.asList(drinkResultSizeS, drinkResultSizeM));
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -120,8 +120,8 @@ public class GetDrinkServiceImplTest {
   @Test
   void process_SuccessWithEmptyResult_TC003() {
     defaultRequest.setSearch("NonExistentDrink");
-    when(getDrinksRepository.countDrinksFiltered(anyString(), any(), any())).thenReturn(0L);
-    when(getDrinksRepository.getDrinksFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
+    when(getDrinksMapper.countDrinksFiltered(anyString(), any(), any())).thenReturn(0L);
+    when(getDrinksMapper.getDrinksFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -134,8 +134,8 @@ public class GetDrinkServiceImplTest {
     defaultRequest.setSearch("   ");
     String search = defaultRequest.trimmedSearch();
     long totalElements = 5L;
-    when(getDrinksRepository.countDrinksFiltered(isNull(), isNull(), isNull())).thenReturn(totalElements);
-    when(getDrinksRepository.getDrinksFiltered(isNull(), eq("drinkName"), eq("ASC"), eq(10), eq(0), isNull(), isNull()))
+    when(getDrinksMapper.countDrinksFiltered(isNull(), isNull(), isNull())).thenReturn(totalElements);
+    when(getDrinksMapper.getDrinksFiltered(isNull(), eq("drinkName"), eq("ASC"), eq(10), eq(0), isNull(), isNull()))
       .thenReturn(Collections.singletonList(drinkResultSizeS));
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
@@ -144,8 +144,8 @@ public class GetDrinkServiceImplTest {
     assertNotNull(response);
     assertEquals(1, response.getItems().size());
     assertEquals(5L, response.getPagination().getTotalElements());
-    verify(getDrinksRepository, times(1)).countDrinksFiltered(null, null, null);
-    verify(getDrinksRepository, times(1)).getDrinksFiltered(null, "drinkName", "ASC", 10, 0, null, null);
+    verify(getDrinksMapper, times(1)).countDrinksFiltered(null, null, null);
+    verify(getDrinksMapper, times(1)).getDrinksFiltered(null, "drinkName", "ASC", 10, 0, null, null);
   }
 
   @Test
@@ -153,8 +153,8 @@ public class GetDrinkServiceImplTest {
     defaultRequest.setPage(2);
     defaultRequest.setSize(10);
     List<DrinkResult> last5Items = IntStream.range(0, 5).mapToObj(i -> new DrinkResult()).collect(Collectors.toList());
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(15L);
-    when(getDrinksRepository.getDrinksFiltered(any(), anyString(), anyString(), eq(10), eq(10), any(), any())).thenReturn(last5Items);
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(15L);
+    when(getDrinksMapper.getDrinksFiltered(any(), anyString(), anyString(), eq(10), eq(10), any(), any())).thenReturn(last5Items);
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -169,8 +169,8 @@ public class GetDrinkServiceImplTest {
     defaultRequest.setPage(2);
     defaultRequest.setSize(10);
     List<DrinkResult> last10Items = IntStream.range(0, 10).mapToObj(i -> new DrinkResult()).collect(Collectors.toList());
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(20L);
-    when(getDrinksRepository.getDrinksFiltered(any(), anyString(), anyString(), eq(10), eq(10), any(), any())).thenReturn(last10Items);
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(20L);
+    when(getDrinksMapper.getDrinksFiltered(any(), anyString(), anyString(), eq(10), eq(10), any(), any())).thenReturn(last10Items);
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -184,35 +184,35 @@ public class GetDrinkServiceImplTest {
   void process_SuccessWithPriceSortingDesc_TC007() {
     defaultRequest.setSortBy("price");
     defaultRequest.setSortDirection(SortDirection.DESC);
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
 
     getDrinkService.process(defaultRequest);
 
-    verify(getDrinksRepository, times(1)).getDrinksFiltered(any(), eq("price"), eq("DESC"), anyInt(), anyInt(), any(), any());
+    verify(getDrinksMapper, times(1)).getDrinksFiltered(any(), eq("price"), eq("DESC"), anyInt(), anyInt(), any(), any());
   }
 
   @Test
   void process_SuccessWithDefaultSorting_TC008() {
     SearchDrinksRequest requestWithDefaults = new SearchDrinksRequest();
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
 
     getDrinkService.process(requestWithDefaults);
 
-    verify(getDrinksRepository, times(1)).getDrinksFiltered(any(), eq("drinkId"), eq("ASC"), anyInt(), anyInt(), any(), any());
+    verify(getDrinksMapper, times(1)).getDrinksFiltered(any(), eq("drinkId"), eq("ASC"), anyInt(), anyInt(), any(), any());
   }
 
   @Test
   void process_SuccessWithSearchContainingSpecialChars_TC009() {
     String searchTerm = "Trà O'long";
     defaultRequest.setSearch(searchTerm);
-    when(getDrinksRepository.countDrinksFiltered(eq(searchTerm), any(), any())).thenReturn(1L);
-    when(getDrinksRepository.getDrinksFiltered(eq(searchTerm), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
+    when(getDrinksMapper.countDrinksFiltered(eq(searchTerm), any(), any())).thenReturn(1L);
+    when(getDrinksMapper.getDrinksFiltered(eq(searchTerm), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
 
     getDrinkService.process(defaultRequest);
 
-    verify(getDrinksRepository, times(1)).countDrinksFiltered(eq(searchTerm), any(), any());
+    verify(getDrinksMapper, times(1)).countDrinksFiltered(eq(searchTerm), any(), any());
   }
 
   @Test
@@ -220,8 +220,8 @@ public class GetDrinkServiceImplTest {
     defaultRequest.setPage(3);
     defaultRequest.setSize(10);
     List<DrinkResult> last3Items = IntStream.range(0, 3).mapToObj(i -> new DrinkResult()).collect(Collectors.toList());
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(23L);
-    when(getDrinksRepository.getDrinksFiltered(any(), anyString(), anyString(), eq(10), eq(20), any(), any())).thenReturn(last3Items);
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(23L);
+    when(getDrinksMapper.getDrinksFiltered(any(), anyString(), anyString(), eq(10), eq(20), any(), any())).thenReturn(last3Items);
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -233,7 +233,7 @@ public class GetDrinkServiceImplTest {
 
   @Test
   void process_ThrowsExceptionWhenCountRepositoryFails_TC011() {
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenThrow(new DataAccessException("DB count error") {
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenThrow(new DataAccessException("DB count error") {
     });
 
     assertThrows(DataAccessException.class, () -> getDrinkService.process(defaultRequest));
@@ -241,8 +241,8 @@ public class GetDrinkServiceImplTest {
 
   @Test
   void process_ThrowsExceptionWhenGetRepositoryFails_TC012() {
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenThrow(new DataAccessException("DB get error") {
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenThrow(new DataAccessException("DB get error") {
     });
 
     assertThrows(DataAccessException.class, () -> getDrinkService.process(defaultRequest));
@@ -250,8 +250,8 @@ public class GetDrinkServiceImplTest {
 
   @Test
   void process_HandlesRepositoryReturningNullList_TC013() {
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(null);
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(null);
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -263,8 +263,8 @@ public class GetDrinkServiceImplTest {
   @Test
   void process_HandlesPageOutOfBounds_TC014() {
     defaultRequest.setPage(3);
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(15L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(15L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -276,8 +276,8 @@ public class GetDrinkServiceImplTest {
 
   @Test
   void process_HandlesInconsistentCountGreaterThanGet_TC015() {
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(10L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(10L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -288,8 +288,8 @@ public class GetDrinkServiceImplTest {
   @Test
   void process_HandlesInconsistentCountLessThanGet_TC016() {
     List<DrinkResult> fiveItems = IntStream.range(0, 5).mapToObj(i -> new DrinkResult()).collect(Collectors.toList());
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(fiveItems);
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(fiveItems);
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -303,8 +303,8 @@ public class GetDrinkServiceImplTest {
     listWithNull.add(drinkResultSizeS);
     listWithNull.add(null);
     listWithNull.add(drinkResultSizeM);
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(3L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(listWithNull);
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(3L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(listWithNull);
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 
@@ -316,30 +316,30 @@ public class GetDrinkServiceImplTest {
 
   @Test
   void process_VerifyGetCallIsMadeWhenCountIsZero_TC018() {
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(0L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(0L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
 
     getDrinkService.process(defaultRequest);
 
-    verify(getDrinksRepository, times(1)).getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any());
+    verify(getDrinksMapper, times(1)).getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any());
   }
 
   @Test
   void process_HandlesRequestForPageZeroOrNegative_TC019() {
     defaultRequest.setPage(0);
     int expectedOffset = -10;
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(0L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(0L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.emptyList());
 
     getDrinkService.process(defaultRequest);
 
-    verify(getDrinksRepository, times(1)).getDrinksFiltered(any(), any(), any(), anyInt(), eq(expectedOffset), any(), any());
+    verify(getDrinksMapper, times(1)).getDrinksFiltered(any(), any(), any(), anyInt(), eq(expectedOffset), any(), any());
   }
 
   @Test
   void process_DoesNotReturnDeletedItems_TC020() {
-    when(getDrinksRepository.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
-    when(getDrinksRepository.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.singletonList(drinkResultSizeS));
+    when(getDrinksMapper.countDrinksFiltered(any(), any(), any())).thenReturn(1L);
+    when(getDrinksMapper.getDrinksFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any())).thenReturn(Collections.singletonList(drinkResultSizeS));
 
     PageResponse<DrinkResult> response = getDrinkService.process(defaultRequest);
 

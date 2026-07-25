@@ -1,10 +1,10 @@
-package coffee.api.services;
+package coffee.api.services.category;
 
 import coffee.api.dto.request.category.SearchCategoriesRequest;
 import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.result.CategoryResult;
 import coffee.api.enums.SortDirection;
-import coffee.api.repository.category.GetCategoryRepository;
+import coffee.api.mapper.GetCategoriesMapper;
 import coffee.api.services.services_implement.category.GetCategoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 public class GetCategoryServiceImplTest {
 
   @Mock
-  private GetCategoryRepository getCategoryRepository;
+  private GetCategoriesMapper getCategoriesMapper;
 
   @InjectMocks
   private GetCategoryServiceImpl getCategoryService;
@@ -77,8 +77,8 @@ public class GetCategoryServiceImplTest {
   @Test
   void process_SuccessWithSingleItem_TC001() {
     defaultRequest.setSearch("Cà Phê");
-    when(getCategoryRepository.countCategoriesFiltered(anyString(), any(), any())).thenReturn(1L);
-    when(getCategoryRepository.getCategoriesFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(anyString(), any(), any())).thenReturn(1L);
+    when(getCategoriesMapper.getCategoriesFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any()))
       .thenReturn(Collections.singletonList(categoryResult1));
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -96,8 +96,8 @@ public class GetCategoryServiceImplTest {
 
   @Test
   void process_SuccessWithMultipleItems_TC002() {
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(2L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), anyString(), anyString(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(2L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), anyString(), anyString(), anyInt(), anyInt(), any(), any()))
       .thenReturn(Arrays.asList(categoryResult1, categoryResult2));
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -114,8 +114,8 @@ public class GetCategoryServiceImplTest {
     String search = defaultRequest.trimmedSearch();
     long totalElements = 5L;
 
-    when(getCategoryRepository.countCategoriesFiltered(isNull(), isNull(), isNull())).thenReturn(totalElements);
-    when(getCategoryRepository.getCategoriesFiltered(isNull(), eq("drinkCategoryId"), eq("ASC"), eq(10), eq(0), isNull(), isNull()))
+    when(getCategoriesMapper.countCategoriesFiltered(isNull(), isNull(), isNull())).thenReturn(totalElements);
+    when(getCategoriesMapper.getCategoriesFiltered(isNull(), eq("drinkCategoryId"), eq("ASC"), eq(10), eq(0), isNull(), isNull()))
       .thenReturn(Collections.singletonList(categoryResult1));
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -125,8 +125,8 @@ public class GetCategoryServiceImplTest {
     assertEquals(1, response.getItems().size());
     assertEquals(5L, response.getPagination().getTotalElements());
 
-    verify(getCategoryRepository, times(1)).countCategoriesFiltered(null, null, null);
-    verify(getCategoryRepository, times(1)).getCategoriesFiltered(null, "drinkCategoryId", "ASC", 10, 0, null, null);
+    verify(getCategoriesMapper, times(1)).countCategoriesFiltered(null, null, null);
+    verify(getCategoriesMapper, times(1)).getCategoriesFiltered(null, "drinkCategoryId", "ASC", 10, 0, null, null);
   }
 
   @Test
@@ -135,8 +135,8 @@ public class GetCategoryServiceImplTest {
     defaultRequest.setSize(10);
     List<CategoryResult> last5Items = IntStream.range(0, 5).mapToObj(i -> new CategoryResult()).collect(Collectors.toList());
 
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(15L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), anyString(), anyString(), eq(10), eq(10), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(15L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), anyString(), anyString(), eq(10), eq(10), any(), any()))
       .thenReturn(last5Items);
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -152,13 +152,13 @@ public class GetCategoryServiceImplTest {
     defaultRequest.setSortBy("categoryName");
     defaultRequest.setSortDirection(SortDirection.DESC);
 
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(1L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(1L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
       .thenReturn(Collections.emptyList());
 
     getCategoryService.process(defaultRequest);
 
-    verify(getCategoryRepository, times(1))
+    verify(getCategoriesMapper, times(1))
       .getCategoriesFiltered(any(), eq("categoryName"), eq("DESC"), anyInt(), anyInt(), any(), any());
   }
 
@@ -168,8 +168,8 @@ public class GetCategoryServiceImplTest {
     defaultRequest.setSize(10);
     List<CategoryResult> last10Items = IntStream.range(0, 10).mapToObj(i -> new CategoryResult()).collect(Collectors.toList());
 
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(20L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), anyString(), anyString(), eq(10), eq(10), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(20L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), anyString(), anyString(), eq(10), eq(10), any(), any()))
       .thenReturn(last10Items);
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -185,14 +185,14 @@ public class GetCategoryServiceImplTest {
     String searchTerm = "Trà O'long";
     defaultRequest.setSearch(searchTerm);
 
-    when(getCategoryRepository.countCategoriesFiltered(eq(searchTerm), any(), any())).thenReturn(1L);
-    when(getCategoryRepository.getCategoriesFiltered(eq(searchTerm), any(), any(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(eq(searchTerm), any(), any())).thenReturn(1L);
+    when(getCategoriesMapper.getCategoriesFiltered(eq(searchTerm), any(), any(), anyInt(), anyInt(), any(), any()))
       .thenReturn(Collections.singletonList(categoryResult2));
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
 
     assertEquals(1, response.getItems().size());
-    verify(getCategoryRepository, times(1)).countCategoriesFiltered(eq(searchTerm), isNull(), isNull());
+    verify(getCategoriesMapper, times(1)).countCategoriesFiltered(eq(searchTerm), isNull(), isNull());
   }
   @Test
   void process_SuccessWhenRequestingLastPageExactly_TC008() {
@@ -202,8 +202,8 @@ public class GetCategoryServiceImplTest {
       .mapToObj(i -> new CategoryResult())
       .collect(Collectors.toList());
 
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(23L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), anyString(), anyString(), eq(10), eq(20), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(23L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), anyString(), anyString(), eq(10), eq(20), any(), any()))
       .thenReturn(last3Items);
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -221,8 +221,8 @@ public class GetCategoryServiceImplTest {
   @Test
   void process_SuccessWithEmptyResult_TC009() {
     defaultRequest.setSearch("NonExistentCategory");
-    when(getCategoryRepository.countCategoriesFiltered(anyString(), any(), any())).thenReturn(0L);
-    when(getCategoryRepository.getCategoriesFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(anyString(), any(), any())).thenReturn(0L);
+    when(getCategoriesMapper.getCategoriesFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), any()))
       .thenReturn(Collections.emptyList());
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -234,7 +234,7 @@ public class GetCategoryServiceImplTest {
 
   @Test
   void process_ThrowsExceptionWhenCountRepositoryFails_TC010() {
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any()))
       .thenThrow(new DataAccessException("DB count error") {
       });
 
@@ -243,8 +243,8 @@ public class GetCategoryServiceImplTest {
 
   @Test
   void process_ThrowsExceptionWhenGetRepositoryFails_TC011() {
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(1L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(1L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
       .thenThrow(new DataAccessException("DB get error") {
       });
 
@@ -253,8 +253,8 @@ public class GetCategoryServiceImplTest {
 
   @Test
   void process_HandlesRepositoryReturningNullList_TC012() {
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(1L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(1L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
       .thenReturn(null);
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -271,8 +271,8 @@ public class GetCategoryServiceImplTest {
     listWithNull.add(null);
     listWithNull.add(categoryResult2);
 
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(3L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(3L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
       .thenReturn(listWithNull);
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -286,8 +286,8 @@ public class GetCategoryServiceImplTest {
   @Test
   void process_HandlesPageOutOfBounds_TC014() {
     defaultRequest.setPage(5);
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(15L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(15L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
       .thenReturn(Collections.emptyList());
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -304,8 +304,8 @@ public class GetCategoryServiceImplTest {
       .mapToObj(i -> new CategoryResult())
       .collect(Collectors.toList());
 
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(1L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(1L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
       .thenReturn(fiveItems);
 
     PageResponse<CategoryResult> response = getCategoryService.process(defaultRequest);
@@ -319,13 +319,13 @@ public class GetCategoryServiceImplTest {
     defaultRequest.setPage(0);
     int expectedOffset = -10;
 
-    when(getCategoryRepository.countCategoriesFiltered(any(), any(), any())).thenReturn(0L);
-    when(getCategoryRepository.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
+    when(getCategoriesMapper.countCategoriesFiltered(any(), any(), any())).thenReturn(0L);
+    when(getCategoriesMapper.getCategoriesFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
       .thenReturn(Collections.emptyList());
 
     getCategoryService.process(defaultRequest);
 
-    verify(getCategoryRepository, times(1))
+    verify(getCategoriesMapper, times(1))
       .getCategoriesFiltered(any(), any(), any(), anyInt(), eq(expectedOffset), any(), any());
   }
 }

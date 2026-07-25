@@ -1,4 +1,4 @@
-package coffee.api.services.staff;
+package coffee.api.services;
 
 import coffee.api.dto.request.user.EditStaffRequest;
 import coffee.api.exceptions.DataNotFoundException;

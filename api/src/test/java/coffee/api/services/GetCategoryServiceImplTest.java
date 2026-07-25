@@ -1,4 +1,4 @@
-package coffee.api.services.category;
+package coffee.api.services;
 
 import coffee.api.dto.request.category.SearchCategoriesRequest;
 import coffee.api.dto.response.base_response.PageResponse;

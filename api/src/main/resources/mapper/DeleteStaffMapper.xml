@@ -9,7 +9,7 @@
     UPDATE profiles
     SET
       is_deleted = true,
-      updated_at = NOW()
+      updated_at = NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'
     WHERE profile_id = #{profileId}
       AND is_deleted = false
   </update>

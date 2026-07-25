@@ -29,7 +29,7 @@
     ELSE (SELECT role_id FROM roles WHERE role_name = 'STAFF' LIMIT 1)
     END,
     false,
-    NOW()
+    NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'
     );
 
     <!-- 2. Insert into profile_shops table using a subquery lookup on the unique username -->
@@ -50,7 +50,7 @@
     WHEN #{currentUserRoleName} = 'OWNER' THEN #{roleId}
     ELSE (SELECT role_id FROM roles WHERE role_name = 'STAFF' LIMIT 1)
     END,
-    NOW()
+    NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'
     );
   </insert>
 

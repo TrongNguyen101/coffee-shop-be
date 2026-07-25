@@ -16,15 +16,13 @@
     <result property="roleName" column="role_name"/>
     <result property="createdAt" column="created_at"/>
     <result property="updatedAt" column="updated_at"/>
-    <result property="isDeleted" column="is_deleted"/>
+    <result property="deletedAt" column="deleted_at"/>
   </resultMap>
 
   <!-- Reusable SQL Fragment for filtering -->
   <sql id="staffsFilterCondition">
-    <!-- Exclude deleted users, roles, and shops -->
-    u.is_deleted = false
-    AND r.is_deleted = false
-    AND s.is_deleted = false
+    <!-- Exclude soft-deleted profiles -->
+    u.deleted_at IS NULL
 
     <!-- Role-based security scoping rules -->
     AND
@@ -63,13 +61,13 @@
       AND s.shop_id = #{branchShopId}::uuid
     </if>
 
-    <!-- Text Search Constraints (shop_name removed) -->
+    <!-- Text Search Constraints -->
     <if test="search != null and search != ''">
       AND (
-      u.username LIKE CONCAT('%', #{search}, '%')
-      OR u.email LIKE CONCAT('%', #{search}, '%')
-      OR u.full_name LIKE CONCAT('%', #{search}, '%')
-      OR u.phone_number LIKE CONCAT('%', #{search}, '%')
+      u.username ILIKE CONCAT('%', #{search}, '%')
+      OR u.email ILIKE CONCAT('%', #{search}, '%')
+      OR u.full_name ILIKE CONCAT('%', #{search}, '%')
+      OR u.phone_number ILIKE CONCAT('%', #{search}, '%')
       )
     </if>
   </sql>
@@ -86,11 +84,11 @@
     r.role_name,
     u.created_at,
     u.updated_at,
-    u.is_deleted
+    u.deleted_at
     FROM profiles u
-    INNER JOIN roles r ON u.role_id = r.role_id
-    INNER JOIN profile_shops ps ON u.profile_id = ps.profile_id
-    INNER JOIN shops s ON ps.shop_id = s.shop_id
+    LEFT JOIN roles r ON u.role_id = r.role_id
+    LEFT JOIN profile_shops ps ON u.profile_id = ps.profile_id
+    LEFT JOIN shops s ON ps.shop_id = s.shop_id
     <where>
       <include refid="staffsFilterCondition"/>
     </where>
@@ -120,9 +118,9 @@
   <select id="countStaffsFiltered" resultType="long">
     SELECT COUNT(*)
     FROM profiles u
-    INNER JOIN roles r ON u.role_id = r.role_id
-    INNER JOIN profile_shops ps ON u.profile_id = ps.profile_id
-    INNER JOIN shops s ON ps.shop_id = s.shop_id
+    LEFT JOIN roles r ON u.role_id = r.role_id
+    LEFT JOIN profile_shops ps ON u.profile_id = ps.profile_id
+    LEFT JOIN shops s ON ps.shop_id = s.shop_id
     <where>
       <include refid="staffsFilterCondition"/>
     </where>

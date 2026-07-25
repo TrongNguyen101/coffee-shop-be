@@ -1,4 +1,4 @@
-package coffee.api.services.drink;
+package coffee.api.services;
 
 import coffee.api.dto.request.drink.SearchDrinksRequest;
 import coffee.api.dto.response.base_response.PageResponse;

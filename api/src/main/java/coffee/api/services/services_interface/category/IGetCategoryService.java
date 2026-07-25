@@ -1,4 +1,4 @@
-package coffee.api.services.services_interface.Category;
+package coffee.api.services.services_interface.category;
 
 import coffee.api.dto.result.CategoryResult;
 import coffee.api.dto.response.base_response.PageResponse;

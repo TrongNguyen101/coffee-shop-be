@@ -37,12 +37,14 @@ public class GetStaffsServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    // Initialize standard valid pagination & filtering request
+    // Initialize standard valid request with dropdown filters (roleId & branchShopId)
     validRequest = new SearchUsersRequest();
     validRequest.setPage(1);
     validRequest.setSize(10);
-    validRequest.setSearch("Saigon");
-    validRequest.setSortBy("shopName");
+    validRequest.setSearch("Nguyen");
+    validRequest.setRoleId("ROLE_STAFF_ID_001");
+    validRequest.setBranchShopId("SHOP_ID_001");
+    validRequest.setSortBy("fullName");
     validRequest.setSortDirection(SortDirection.DESC);
 
     // Context user configurations
@@ -57,7 +59,7 @@ public class GetStaffsServiceImplTest {
     sampleStaffResult.setFullName("Nguyen Van A");
     sampleStaffResult.setPhoneNumber("0901234567");
     sampleStaffResult.setShopName("Saigon Drip & Brew");
-    sampleStaffResult.setRoleName("STAFF"); // Starts as raw string, will be converted to VN role name
+    sampleStaffResult.setRoleName("STAFF"); // Will be converted to "NHÂN VIÊN" by ConvertRoleVN
     sampleStaffResult.setCreatedAt(LocalDateTime.now());
     sampleStaffResult.setUpdatedAt(LocalDateTime.now());
     sampleStaffResult.setIsDeleted(false);
@@ -67,6 +69,8 @@ public class GetStaffsServiceImplTest {
   void process_SuccessWithItems_TC001() {
     // Arrange
     String search = validRequest.trimmedSearch();
+    String roleId = validRequest.getRoleId();
+    String branchShopId = validRequest.getBranchShopId();
     String sortBy = validRequest.getSortBy();
     String sortDirection = validRequest.directionValue();
     int size = validRequest.getSize();
@@ -75,10 +79,13 @@ public class GetStaffsServiceImplTest {
 
     List<ProfileResult> expectedItems = Collections.singletonList(sampleStaffResult);
 
-    when(getStaffsMapper.countStaffsFiltered(search, currentUserRoleName, currentUserId))
-      .thenReturn(totalElements);
-    when(getStaffsMapper.getStaffsFiltered(search, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId))
-      .thenReturn(expectedItems);
+    when(getStaffsMapper.countStaffsFiltered(
+      search, roleId, branchShopId, currentUserRoleName, currentUserId
+    )).thenReturn(totalElements);
+
+    when(getStaffsMapper.getStaffsFiltered(
+      search, roleId, branchShopId, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId
+    )).thenReturn(expectedItems);
 
     // Act
     PageResponse<ProfileResult> response = getStaffsService.process(validRequest, currentUserRoleName, currentUserId);
@@ -90,10 +97,10 @@ public class GetStaffsServiceImplTest {
     assertEquals(1, response.getItems().size());
     assertEquals("staff1@coffee.com", response.getItems().getFirst().getEmail());
 
-    // Verifies the role name translation helper mutation runs cleanly
+    // Verifies Vietnamese translation conversion for role name
     assertEquals("NHÂN VIÊN", response.getItems().getFirst().getRoleName());
 
-    // Pagination verification meta counters
+    // Pagination metadata assertions
     assertNotNull(response.getPagination());
     assertEquals(1, response.getPagination().getPage());
     assertEquals(10, response.getPagination().getSize());
@@ -101,26 +108,31 @@ public class GetStaffsServiceImplTest {
     assertEquals(1, response.getPagination().getTotalPages());
 
     verify(getStaffsMapper, times(1))
-      .countStaffsFiltered(search, currentUserRoleName, currentUserId);
+      .countStaffsFiltered(search, roleId, branchShopId, currentUserRoleName, currentUserId);
     verify(getStaffsMapper, times(1))
-      .getStaffsFiltered(search, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId);
+      .getStaffsFiltered(search, roleId, branchShopId, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId);
   }
 
   @Test
   void process_SuccessWithEmptyResults_TC002() {
     // Arrange
-    validRequest.setSearch("NonExistentStoreName");
+    validRequest.setSearch("NonExistentUser");
     String search = validRequest.trimmedSearch();
+    String roleId = validRequest.getRoleId();
+    String branchShopId = validRequest.getBranchShopId();
     String sortBy = validRequest.getSortBy();
     String sortDirection = validRequest.directionValue();
     int size = validRequest.getSize();
     int offset = validRequest.calcOffset();
     long totalElements = 0L;
 
-    when(getStaffsMapper.countStaffsFiltered(search, currentUserRoleName, currentUserId))
-      .thenReturn(totalElements);
-    when(getStaffsMapper.getStaffsFiltered(search, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId))
-      .thenReturn(Collections.emptyList());
+    when(getStaffsMapper.countStaffsFiltered(
+      search, roleId, branchShopId, currentUserRoleName, currentUserId
+    )).thenReturn(totalElements);
+
+    when(getStaffsMapper.getStaffsFiltered(
+      search, roleId, branchShopId, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId
+    )).thenReturn(Collections.emptyList());
 
     // Act
     PageResponse<ProfileResult> response = getStaffsService.process(validRequest, currentUserRoleName, currentUserId);
@@ -132,39 +144,44 @@ public class GetStaffsServiceImplTest {
     assertEquals(0, response.getPagination().getTotalPages());
 
     verify(getStaffsMapper, times(1))
-      .countStaffsFiltered(search, currentUserRoleName, currentUserId);
+      .countStaffsFiltered(search, roleId, branchShopId, currentUserRoleName, currentUserId);
     verify(getStaffsMapper, times(1))
-      .getStaffsFiltered(search, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId);
+      .getStaffsFiltered(search, roleId, branchShopId, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId);
   }
 
   @Test
   void process_SuccessWithNullAndBlankSearchStrings_TC003() {
     // Arrange
-    validRequest.setSearch("   "); // Trimmable blank input variations
-    String search = validRequest.trimmedSearch(); // Returns null
+    validRequest.setSearch("   "); // Trimmable whitespace input
+    String search = validRequest.trimmedSearch(); // Evaluates to null
+    String roleId = validRequest.getRoleId();
+    String branchShopId = validRequest.getBranchShopId();
     String sortBy = validRequest.getSortBy();
     String sortDirection = validRequest.directionValue();
     int size = validRequest.getSize();
     int offset = validRequest.calcOffset();
     long totalElements = 5L;
 
-    when(getStaffsMapper.countStaffsFiltered(null, currentUserRoleName, currentUserId))
-      .thenReturn(totalElements);
-    when(getStaffsMapper.getStaffsFiltered(null, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId))
-      .thenReturn(Collections.singletonList(sampleStaffResult));
+    when(getStaffsMapper.countStaffsFiltered(
+      null, roleId, branchShopId, currentUserRoleName, currentUserId
+    )).thenReturn(totalElements);
+
+    when(getStaffsMapper.getStaffsFiltered(
+      null, roleId, branchShopId, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId
+    )).thenReturn(Collections.singletonList(sampleStaffResult));
 
     // Act
     PageResponse<ProfileResult> response = getStaffsService.process(validRequest, currentUserRoleName, currentUserId);
 
     // Assert
-    assertNull(search); // Confirms .trimmedSearch() converted whitespace string to null
+    assertNull(search);
     assertNotNull(response);
     assertEquals(5L, response.getPagination().getTotalElements());
-
-    // Verifies the stream still maps the value correctly on blank filter requests
     assertEquals("NHÂN VIÊN", response.getItems().getFirst().getRoleName());
 
     verify(getStaffsMapper, times(1))
-      .countStaffsFiltered(null, currentUserRoleName, currentUserId);
+      .countStaffsFiltered(null, roleId, branchShopId, currentUserRoleName, currentUserId);
+    verify(getStaffsMapper, times(1))
+      .getStaffsFiltered(null, roleId, branchShopId, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId);
   }
 }

@@ -5,7 +5,7 @@ import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.response.base_response.PaginationMeta;
 import coffee.api.dto.result.CategoryResult;
 import coffee.api.mapper.GetCategoriesMapper;
-import coffee.api.services.services_interface.Category.IGetCategoryService;
+import coffee.api.services.services_interface.category.IGetCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -5,7 +5,7 @@ import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.response.category.GetCategoryResponse;
 import coffee.api.dto.result.CategoryResult;
 import coffee.api.enums.ResponseCode;
-import coffee.api.services.services_interface.Category.IGetCategoryService;
+import coffee.api.services.services_interface.category.IGetCategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -5,7 +5,7 @@
 
 <mapper namespace="coffee.api.mapper.GetStaffsMapper">
 
-  <!-- Reusable Result Map for mapping database columns to ProfileResult -->
+  <!-- Reusable Result Map -->
   <resultMap id="ProfileResultMap" type="coffee.api.dto.result.ProfileResult">
     <id property="profileId" column="profile_id"/>
     <result property="email" column="email"/>
@@ -19,14 +19,14 @@
     <result property="isDeleted" column="is_deleted"/>
   </resultMap>
 
-  <!-- Reusable SQL Fragment for filtering by role scope, shops, and search term -->
+  <!-- Reusable SQL Fragment for filtering -->
   <sql id="staffsFilterCondition">
-    <!-- CRITICAL: Exclude deleted users, roles, and shops from the results -->
+    <!-- Exclude deleted users, roles, and shops -->
     u.is_deleted = false
     AND r.is_deleted = false
     AND s.is_deleted = false
 
-    <!-- Append the role-based scoping rules -->
+    <!-- Role-based security scoping rules -->
     AND
     <choose>
       <!-- OWNER: Can view all STAFF and MANAGER roles across all stores -->
@@ -48,20 +48,28 @@
         )
       </when>
 
-      <!-- FALLBACK / OTHER: Default safety isolation layer -->
+      <!-- FALLBACK -->
       <otherwise>
         r.role_name = 'STAFF'
       </otherwise>
     </choose>
 
-    <!-- Text Search Constraints -->
+    <!-- Specific Dropdown Filters -->
+    <if test="roleId != null and roleId != ''">
+      AND r.role_id = #{roleId}::uuid
+    </if>
+
+    <if test="branchShopId != null and branchShopId != ''">
+      AND s.shop_id = #{branchShopId}::uuid
+    </if>
+
+    <!-- Text Search Constraints (shop_name removed) -->
     <if test="search != null and search != ''">
       AND (
       u.username LIKE CONCAT('%', #{search}, '%')
       OR u.email LIKE CONCAT('%', #{search}, '%')
       OR u.full_name LIKE CONCAT('%', #{search}, '%')
       OR u.phone_number LIKE CONCAT('%', #{search}, '%')
-      OR s.shop_name LIKE CONCAT('%', #{search}, '%')
       )
     </if>
   </sql>
@@ -108,7 +116,7 @@
     LIMIT #{size} OFFSET #{offset}
   </select>
 
-  <!-- 2. Count total matches for metadata pagination -->
+  <!-- 2. Count total matches -->
   <select id="countStaffsFiltered" resultType="long">
     SELECT COUNT(*)
     FROM profiles u

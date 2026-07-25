@@ -1,4 +1,4 @@
-package coffee.api.services.dropdown;
+package coffee.api.services;
 
 import coffee.api.dto.result.ShopNameResult;
 import coffee.api.mapper.GetShopNameMapper;

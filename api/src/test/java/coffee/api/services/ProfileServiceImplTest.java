@@ -1,4 +1,4 @@
-package coffee.api.services.common;
+package coffee.api.services;
 
 import coffee.api.dto.request.common.UserProfileRequest;
 import coffee.api.dto.result.ProfileResult;

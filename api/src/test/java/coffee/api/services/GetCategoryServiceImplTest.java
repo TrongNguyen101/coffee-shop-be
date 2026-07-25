@@ -5,7 +5,7 @@ import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.result.CategoryResult;
 import coffee.api.enums.SortDirection;
 import coffee.api.repository.category.GetCategoryRepository;
-import coffee.api.services.services_implement.Category.GetCategoryServiceImpl;
+import coffee.api.services.services_implement.category.GetCategoryServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

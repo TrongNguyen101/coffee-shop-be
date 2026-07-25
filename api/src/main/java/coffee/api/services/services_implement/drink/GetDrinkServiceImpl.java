@@ -4,7 +4,7 @@ import coffee.api.dto.request.drink.SearchDrinksRequest;
 import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.response.base_response.PaginationMeta;
 import coffee.api.dto.result.DrinkResult;
-import coffee.api.repository.drink.GetDrinksRepository;
+import coffee.api.mapper.GetDrinksMapper;
 import coffee.api.services.services_interface.drink.IGetDrinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,17 +15,17 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class GetDrinkServiceImpl implements IGetDrinkService {
-  private final GetDrinksRepository getDrinksRepository;
+  private final GetDrinksMapper getDrinksMapper;
 
   @Override
   public PageResponse<DrinkResult> process(SearchDrinksRequest request) {
-    long totalElements = getDrinksRepository.countDrinksFiltered(
+    long totalElements = getDrinksMapper.countDrinksFiltered(
       request.trimmedSearch(),
       null,
       null
     );
 
-    List<DrinkResult> drinks = getDrinksRepository.getDrinksFiltered(
+    List<DrinkResult> drinks = getDrinksMapper.getDrinksFiltered(
       request.trimmedSearch(),
       request.getSortBy(),
       request.getSortDirection().toString(),

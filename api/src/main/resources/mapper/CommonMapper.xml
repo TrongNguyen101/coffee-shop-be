@@ -62,7 +62,7 @@
     SELECT 1
     FROM drinks
     WHERE drink_id = #{drinkId}
-    AND is_deleted = false
+    AND deleted_at IS NULL
     )
   </select>
 

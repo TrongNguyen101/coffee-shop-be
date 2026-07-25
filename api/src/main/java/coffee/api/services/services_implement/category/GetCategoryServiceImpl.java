@@ -1,10 +1,10 @@
-package coffee.api.services.services_implement.Category;
+package coffee.api.services.services_implement.category;
 
 import coffee.api.dto.request.category.SearchCategoriesRequest;
 import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.response.base_response.PaginationMeta;
 import coffee.api.dto.result.CategoryResult;
-import coffee.api.repository.category.GetCategoryRepository;
+import coffee.api.mapper.GetCategoriesMapper;
 import coffee.api.services.services_interface.Category.IGetCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,17 +16,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GetCategoryServiceImpl implements IGetCategoryService {
 
-  private final GetCategoryRepository getCategoryRepository;
+  private final GetCategoriesMapper getCategoriesMapper;
 
   @Override
   public PageResponse<CategoryResult> process(SearchCategoriesRequest request) {
-    long totalElements = getCategoryRepository.countCategoriesFiltered(
+    long totalElements = getCategoriesMapper.countCategoriesFiltered(
       request.trimmedSearch(),
       null,
       null
     );
 
-    List<CategoryResult> categories = getCategoryRepository.getCategoriesFiltered(
+    List<CategoryResult> categories = getCategoriesMapper.getCategoriesFiltered(
       request.trimmedSearch(),
       request.getSortBy(),
       request.getSortDirection().toString(),

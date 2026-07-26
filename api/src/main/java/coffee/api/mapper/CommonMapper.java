@@ -22,6 +22,12 @@ public interface CommonMapper {
 
   Boolean checkShopExisted(@Param("shopId") UUID shopId);
 
+  Boolean checkCategoryExisted(
+    @Param("categoryId") UUID categoryId,
+    @Param("currentUserRoleName") String currentUserRoleName,
+    @Param("currentUserShopId") UUID currentUserShopId
+  );
+
   Boolean checkDrinkExisted(@Param("drinkId") UUID drinkId);
 
   void deleteDrink(@Param("drinkId") UUID drinkId); //

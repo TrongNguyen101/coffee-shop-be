@@ -1,4 +1,4 @@
-package coffee.api.services;
+package coffee.api.services.services_implement.common;
 
 import coffee.api.dto.request.common.UserProfileRequest;
 import coffee.api.dto.result.ProfileResult;
@@ -6,7 +6,6 @@ import coffee.api.exceptions.AccountDisableException;
 import coffee.api.exceptions.InvalidUsernameOrPasswordException;
 import coffee.api.mapper.GetUserProfileMapper;
 import coffee.api.model.UserProfile;
-import coffee.api.services.services_implement.common.ProfileServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

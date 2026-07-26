@@ -66,4 +66,13 @@
     )
   </select>
 
+  <select id="checkShopExisted" resultType="boolean">
+    SELECT EXISTS (
+      SELECT 1
+      FROM shops
+      WHERE shop_id = #{shopId}
+        AND is_deleted = false
+    )
+  </select>
+
 </mapper>

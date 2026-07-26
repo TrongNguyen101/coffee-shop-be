@@ -9,22 +9,19 @@ import java.util.UUID;
 public interface CreateDrinkMapper {
 
   void createDrink(
-    @Param("drinkId") UUID drinkId,
+    @Param("drinkCategoryId") UUID drinkCategoryId,
+    @Param("drinkDetailId") UUID drinkDetailId,
+    @Param("shopId") UUID shopId,
     @Param("drinkName") String drinkName,
     @Param("imageUrl") String imageUrl,
     @Param("status") Integer status,
     @Param("isDeleted") Boolean isDeleted,
-    @Param("drinkCategoryId") UUID drinkCategoryId
-  );
-
-  void createDrinkDetail(
-    @Param("drinkDetailId") UUID drinkDetailId,
     @Param("size") String size,
-    @Param("price") Float price,
-    @Param("drinkId") UUID drinkId
+    @Param("price") Float price
   );
 
   Boolean checkDrinkExistedByName(
+    @Param("shopId") UUID shopId,
     @Param("drinkName") String drinkName
   );
 }

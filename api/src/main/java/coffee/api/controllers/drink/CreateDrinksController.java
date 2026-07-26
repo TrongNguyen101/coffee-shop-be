@@ -12,10 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,8 +26,11 @@ public class CreateDrinksController {
     @AuthenticationPrincipal CustomUserDetail customUserDetail,
     @RequestBody @Valid CreateDrinksRequest request
   ) {
-
-    createDrinkService.process(request);
+    createDrinkService.process(
+      request,
+      customUserDetail.getShopId(),
+      customUserDetail.getRoleName()
+    );
 
     return ResponseEntity.ok()
       .body(CreateDrinkResponse.of(

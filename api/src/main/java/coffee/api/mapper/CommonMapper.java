@@ -20,6 +20,8 @@ public interface CommonMapper {
     @Param("phoneNumber") String phoneNumber
   );
 
+  Boolean checkShopExisted(@Param("shopId") UUID shopId);
+
   Boolean checkDrinkExisted(@Param("drinkId") UUID drinkId);
 
   void deleteDrink(@Param("drinkId") UUID drinkId); //

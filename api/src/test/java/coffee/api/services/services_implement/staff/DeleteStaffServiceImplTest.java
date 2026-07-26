@@ -1,10 +1,9 @@
-package coffee.api.services;
+package coffee.api.services.services_implement.staff;
 
 import coffee.api.dto.request.user.DeleteStaffRequest;
 import coffee.api.exceptions.DataNotFoundException;
 import coffee.api.mapper.CommonMapper;
 import coffee.api.mapper.DeleteStaffMapper;
-import coffee.api.services.services_implement.staff.DeleteStaffServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

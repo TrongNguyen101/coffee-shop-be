@@ -1,11 +1,10 @@
-package coffee.api.services;
+package coffee.api.services.services_implement.staff;
 
 import coffee.api.dto.request.user.SearchUsersRequest;
 import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.result.ProfileResult;
 import coffee.api.enums.SortDirection;
 import coffee.api.mapper.GetStaffsMapper;
-import coffee.api.services.services_implement.staff.GetStaffsServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

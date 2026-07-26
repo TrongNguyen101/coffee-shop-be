@@ -1,8 +1,7 @@
-package coffee.api.services;
+package coffee.api.services.services_implement.dropdown;
 
 import coffee.api.dto.result.ShopNameResult;
 import coffee.api.mapper.GetShopNameMapper;
-import coffee.api.services.services_implement.dropdown.ShopNameServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

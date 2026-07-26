@@ -1,12 +1,10 @@
 package coffee.api.controllers.category;
 
-import coffee.api.dto.request.category.SearchCategoriesRequest;
-import coffee.api.dto.response.base_response.PageResponse;
-import coffee.api.dto.response.category.GetCategoryResponse;
-import coffee.api.dto.result.CategoryResult;
+import coffee.api.dto.request.category.CreateCategoriesRequest;
+import coffee.api.dto.response.category.CreateCategoriesResponse;
 import coffee.api.enums.ResponseCode;
 import coffee.api.security.CustomUserDetail;
-import coffee.api.services.services_interface.category.IGetCategoryService;
+import coffee.api.services.services_interface.category.ICreateCategoriesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,27 +16,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class GetCategoryController {
+public class CreateCategoryController {
+  private final ICreateCategoriesService createCategoriesService;
 
-  private final IGetCategoryService getCategoryService;
-
-  @PostMapping("categories")
-  @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'STAFF')")
-  public ResponseEntity<GetCategoryResponse> getCategories(
+  @PostMapping("category/create")
+  @PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
+  public ResponseEntity<CreateCategoriesResponse> createCategories(
     @AuthenticationPrincipal CustomUserDetail customUserDetail,
-    @RequestBody @Valid SearchCategoriesRequest request
+    @RequestBody @Valid CreateCategoriesRequest request
   ) {
-    PageResponse<CategoryResult> response = getCategoryService.process(
+    createCategoriesService.process(
       request,
       customUserDetail.getRoleName(),
       customUserDetail.getShopId()
     );
-
-    return ResponseEntity.ok()
-      .body(GetCategoryResponse.of(
+    return ResponseEntity.ok().body(
+      CreateCategoriesResponse.of(
         ResponseCode.SUCCESS,
-        "Categories retrieved successfully",
-        response
-      ));
+        "Category created successfully"
+      )
+    );
   }
 }

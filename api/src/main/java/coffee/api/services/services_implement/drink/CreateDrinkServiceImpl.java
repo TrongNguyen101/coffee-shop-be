@@ -17,34 +17,7 @@ public class CreateDrinkServiceImpl implements ICreateDrinkService {
 
   @Override
   @Transactional
-  public void process(
-    CreateDrinksRequest request
-  ) {
-    Boolean isDrinkExisted = createDrinksMapper.checkDrinkExistedByName(
-      request.getDrinkName(),
-      request.getShopID()
-    );
+  public void process(CreateDrinksRequest request) {
 
-    if (Boolean.TRUE.equals(isDrinkExisted)) {
-      throw new RuntimeException("The drink already exists.");
-    }
-
-    createDrinksMapper.createDrink(
-      request.getDrinkId(),
-      request.getDrinkName(),
-      request.getImageUrl(),
-      request.getStatus(),
-      request.getIsDeleted(),
-      request.getShopID(),
-      request.getDrinkCategoryId()
-    );
-
-    UUID newDrinkDetailId = UUID.randomUUID();
-    createDrinksMapper.createDrinkDetail(
-      newDrinkDetailId,
-      request.getSize(),
-      request.getPrice(),
-      request.getDrinkId()
-    );
   }
 }

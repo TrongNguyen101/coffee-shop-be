@@ -5,11 +5,16 @@
 <mapper namespace="coffee.api.mapper.CreateDrinkMapper">
 
   <select id="checkDrinkExistedByName" resultType="java.lang.Boolean">
-    SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
+    SELECT EXISTS (
+    SELECT 1
     FROM drinks
     WHERE drink_name = #{drinkName}
     AND shop_id = #{shopId}
     AND is_deleted = FALSE
+    <if test="drinkId != null">
+      AND drink_id != #{drinkId}
+    </if>
+    )
   </select>
 
   <insert id="createDrink">

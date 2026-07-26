@@ -21,9 +21,9 @@ public class CreateDrinksRequest {
   @NotNull(message = ValidationMessage.Msg.FIELD_REQUIRED)
   private String size;
   @NotNull(message = ValidationMessage.Msg.FIELD_REQUIRED)
-  private UUID drinkId;
-  @NotNull(message = ValidationMessage.Msg.FIELD_REQUIRED)
   private UUID shopID;
   @NotNull(message = ValidationMessage.Msg.FIELD_REQUIRED)
   private UUID drinkCategoryId;
+  @NotNull(message = ValidationMessage.Msg.FIELD_REQUIRED)
+  private UUID drinkDetailID;
 }

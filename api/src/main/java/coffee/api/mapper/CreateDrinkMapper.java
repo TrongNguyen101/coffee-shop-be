@@ -14,7 +14,6 @@ public interface CreateDrinkMapper {
     @Param("imageUrl") String imageUrl,
     @Param("status") Integer status,
     @Param("isDeleted") Boolean isDeleted,
-    @Param("shopId") UUID shopId,
     @Param("drinkCategoryId") UUID drinkCategoryId
   );
 
@@ -26,7 +25,6 @@ public interface CreateDrinkMapper {
   );
 
   Boolean checkDrinkExistedByName(
-    @Param("drinkName") String drinkName,
-    @Param("shopId") UUID shopId
+    @Param("drinkName") String drinkName
   );
 }

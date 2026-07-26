@@ -56,4 +56,14 @@
     )
   </select>
 
+  <!-- 6. Check if drink exists by Drink ID -->
+  <select id="checkDrinkExisted" resultType="java.lang.Boolean">
+    SELECT EXISTS (
+    SELECT 1
+    FROM drinks
+    WHERE drink_id = #{drinkId}
+    AND deleted_at IS NULL
+    )
+  </select>
+
 </mapper>

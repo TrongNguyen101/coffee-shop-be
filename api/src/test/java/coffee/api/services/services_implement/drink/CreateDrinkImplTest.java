@@ -1,9 +1,8 @@
-package coffee.api.services;
+package coffee.api.services.services_implement.drink;
 
 import coffee.api.dto.request.drink.CreateDrinksRequest;
 import coffee.api.exceptions.UserExistException;
 import coffee.api.mapper.CreateDrinkMapper;
-import coffee.api.services.services_implement.drink.CreateDrinkServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

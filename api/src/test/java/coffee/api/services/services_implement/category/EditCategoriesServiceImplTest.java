@@ -64,6 +64,7 @@ public class EditCategoriesServiceImplTest {
     )).thenReturn(true);
 
     when(commonMapper.checkCategoryNameExisted(
+      validRequest.getCategoryId(),
       validRequest.getCategoryName(),
       managerRole,
       currentUserShopId
@@ -90,6 +91,7 @@ public class EditCategoriesServiceImplTest {
     )).thenReturn(true);
 
     when(commonMapper.checkCategoryNameExisted(
+      validRequest.getCategoryId(),
       validRequest.getCategoryName(),
       ownerRole,
       currentUserShopId
@@ -163,6 +165,7 @@ public class EditCategoriesServiceImplTest {
     )).thenReturn(true);
 
     when(commonMapper.checkCategoryNameExisted(
+      validRequest.getCategoryId(),
       validRequest.getCategoryName(),
       managerRole,
       currentUserShopId

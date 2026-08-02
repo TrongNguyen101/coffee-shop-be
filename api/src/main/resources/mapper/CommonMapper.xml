@@ -108,4 +108,36 @@
     )
   </select>
 
+  <!-- 9. Check if shop id exists -->
+  <select id="checkShopIdIsExist" resultType="boolean">
+    SELECT EXISTS (
+      SELECT 1
+      FROM profile_shops
+      WHERE profile_id = #{currentUserId}
+        AND shop_id = #{currentUserShopId}
+    );
+  </select>
+
+  <!-- 9. Check if category name exists -->
+  <select id="checkCategoryNameExisted" resultType="boolean">
+    SELECT EXISTS (
+    SELECT 1
+    FROM drink_categories
+    WHERE category_name = #{categoryName}
+    AND is_deleted = false
+
+    <choose>
+      <!-- OWNER: check all shops -->
+      <when test="currentUserRoleName == 'OWNER'">
+        <!-- no additional shop filter -->
+      </when>
+
+      <!-- MANAGER: restrict to currentUserShopId -->
+      <when test="currentUserRoleName == 'MANAGER'">
+        AND shop_id = #{currentUserShopId}
+      </when>
+    </choose>
+    );
+  </select>
+
 </mapper>

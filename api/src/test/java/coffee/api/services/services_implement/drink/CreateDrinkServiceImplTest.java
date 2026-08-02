@@ -18,7 +18,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class CreateDrinkImplTest {
+public class CreateDrinkServiceImplTest {
 
   @Mock
   private CreateDrinkMapper createDrinkMapper;

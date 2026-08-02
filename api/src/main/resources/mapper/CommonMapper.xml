@@ -109,7 +109,7 @@
   </select>
 
   <!-- 9. Check if shop id exists -->
-  <select id="checkShopIdIsExist" resultType="boolean">
+  <select id="checkShopIdIsExisted" resultType="boolean">
     SELECT EXISTS (
       SELECT 1
       FROM profile_shops
@@ -125,6 +125,7 @@
     FROM drink_categories
     WHERE category_name = #{categoryName}
     AND is_deleted = false
+    AND drink_category_id != #{categoryId}
 
     <choose>
       <!-- OWNER: check all shops -->

@@ -40,6 +40,7 @@ public interface CommonMapper {
   );
 
   Boolean checkCategoryNameExisted(
+    @Param("categoryId") UUID categoryId,
     @Param("categoryName") String categoryName,
     @Param("currentUserRoleName") String currentUserRoleName,
     @Param("currentUserShopId") UUID currentUserShopId

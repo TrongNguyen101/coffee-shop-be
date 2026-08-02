@@ -73,6 +73,7 @@ public class EditCategoriesServiceImpl implements IEditCategoriesService {
       }
     }
     Boolean isCategoryNameExisted = commonMapper.checkCategoryNameExisted(
+      request.getCategoryId(),
       request.getCategoryName(),
       currentUserRoleName,
       currentUserShopId

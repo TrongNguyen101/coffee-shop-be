@@ -1,6 +1,8 @@
 package coffee.api.dto.result;
 
 import lombok.Data;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +20,6 @@ public class DrinkResult {
   @Data
   public static class DrinkVariantResult {
     private String size;
-    private String price;
+    private BigDecimal price;
   }
 }

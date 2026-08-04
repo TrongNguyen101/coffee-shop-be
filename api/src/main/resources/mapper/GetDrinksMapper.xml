@@ -13,7 +13,7 @@
 
     <collection property="variants" javaType="java.util.List" ofType="coffee.api.dto.result.DrinkResult$DrinkVariantResult">
       <result property="size" column="size"/>
-      <result property="price" column="price"/>
+      <result property="price" column="price"/> 
     </collection>
   </resultMap>
 
@@ -40,13 +40,9 @@
     d.drink_category_id,
     d.drink_name,
     dd.size,
-    TO_CHAR(dd.price, 'FM999,999,999') || 'đ' AS price,
+    dd.price,
     d.image_url,
-    CASE
-    WHEN d.status = 1 THEN 'Đang bán'
-    WHEN d.status = 0 THEN 'Ngừng bán'
-    ELSE 'Không xác định'
-    END AS status,
+    d.status,
     d.is_deleted
     FROM drinks AS d
     JOIN drink_details AS dd ON d.drink_id = dd.drink_id
@@ -75,13 +71,9 @@
     d.drink_category_id,
     d.drink_name,
     dd.size,
-    TO_CHAR(dd.price, 'FM999,999,999') || 'đ' AS price,
+    dd.price,
     d.image_url,
-    CASE
-    WHEN d.status = 1 THEN 'Đang bán'
-    WHEN d.status = 0 THEN 'Ngừng bán'
-    ELSE 'Không xác định'
-    END AS status,
+    d.status,
     d.is_deleted
     FROM paged_drinks AS pd
     JOIN drinks AS d ON pd.drink_id = d.drink_id
@@ -91,13 +83,6 @@
     <if test="sortDirection != null">
       ${sortDirection}
     </if>
-    ,
-    CASE
-    WHEN dd.size = 'S' THEN 1
-    WHEN dd.size = 'M' THEN 2
-    WHEN dd.size = 'L' THEN 3
-    ELSE 4
-    END ASC
   </select>
 
   <!-- Count total unique drinks matching filter conditions for accurate pagination -->

@@ -7,6 +7,7 @@ import coffee.api.dto.result.DrinkResult;
 import coffee.api.mapper.GetDrinksMapper;
 import coffee.api.services.services_interface.drink.IGetDrinkService;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.javassist.NotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -26,12 +27,18 @@ public class GetDrinkServiceImpl implements IGetDrinkService {
     UUID currentUserShopId
   ) {
     long totalElements = getDrinksMapper.countDrinksFiltered(
+      request.getDrinkId(),
       request.trimmedSearch(),
       currentUserShopId,
       currentUserRoleName
     );
 
+    if (request.getDrinkId() != null && totalElements == 0) {
+      throw new NotFoundException("Drink not found with id: " + request.getDrinkId());
+    }
+
     List<DrinkResult> drinks = getDrinksMapper.getDrinksFiltered(
+      request.getDrinkId(),
       request.trimmedSearch(),
       request.getSortBy(),
       request.getSortDirection().toString(),

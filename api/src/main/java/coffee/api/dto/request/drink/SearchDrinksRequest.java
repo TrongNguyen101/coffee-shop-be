@@ -21,12 +21,13 @@ public class SearchDrinksRequest {
 
   private String search;
   private UUID shopId;
+  private UUID drinkId;
 
   @Pattern(
     regexp = "^(drinkId|drinkCategoryId|drinkName|size|price|status|createdAt|updatedAt|isDeleted)$",
     message = ValidationMessage.Msg.SORT_BY_INVALID
   )
-  private String sortBy = "drinkId"; // Default value if client doesn't send.
+  private String sortBy = "drinkId";
 
   private SortDirection sortDirection = SortDirection.ASC;
 

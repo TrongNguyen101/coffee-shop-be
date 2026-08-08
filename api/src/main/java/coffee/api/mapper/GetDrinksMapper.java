@@ -10,6 +10,7 @@ import java.util.UUID;
 @Mapper
 public interface GetDrinksMapper {
   List<DrinkResult> getDrinksFiltered(
+    @Param("drinkId") UUID drinkId,
     @Param("search") String search,
     @Param("sortBy") String sortBy,
     @Param("sortDirection") String sortDirection,
@@ -20,6 +21,7 @@ public interface GetDrinksMapper {
   );
 
   long countDrinksFiltered(
+    @Param("drinkId") UUID drinkId,
     @Param("search") String search,
     @Param("currentUserShopId") UUID currentUserShopId,
     @Param("currentUserRoleName") String currentUserRoleName

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class GetDrinkServiceImpl implements IGetDrinkService {
+
   private final GetDrinksMapper getDrinksMapper;
 
   @Override
@@ -36,6 +37,8 @@ public class GetDrinkServiceImpl implements IGetDrinkService {
 
     if (drinks == null) {
       drinks = Collections.emptyList();
+    } else {
+      drinks.forEach(drink -> drink.setStatus(normalizeStatus(drink.getStatus())));
     }
 
     PaginationMeta pagination =
@@ -47,5 +50,15 @@ public class GetDrinkServiceImpl implements IGetDrinkService {
             .build();
 
     return PageResponse.of("Get drinks successfully", drinks, pagination);
+  }
+
+  private String normalizeStatus(String rawStatus) {
+    if (rawStatus == null) return "UNKNOWN";
+
+    return switch (rawStatus) {
+      case "1", "ACTIVE" -> "Đang bán";
+      case "0", "INACTIVE" -> "Ngừng bán";
+      default -> "Không xác định";
+    };
   }
 }

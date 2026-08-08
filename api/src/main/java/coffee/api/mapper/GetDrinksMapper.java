@@ -9,8 +9,7 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface GetDrinksMapper {
   List<DrinkResult> getDrinksFiltered(
-      @Param("drinkId") UUID drinkId,
-    @Param("search") String search,
+      @Param("search") String search,
       @Param("sortBy") String sortBy,
       @Param("sortDirection") String sortDirection,
       @Param("size") int size,
@@ -19,8 +18,7 @@ public interface GetDrinksMapper {
       @Param("currentUserRoleName") String currentUserRoleName);
 
   long countDrinksFiltered(
-      @Param("drinkId") UUID drinkId,
-    @Param("search") String search,
+      @Param("search") String search,
       @Param("currentUserShopId") UUID currentUserShopId,
       @Param("currentUserRoleName") String currentUserRoleName);
 }

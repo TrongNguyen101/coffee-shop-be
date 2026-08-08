@@ -1,12 +1,9 @@
 package coffee.api.dto.result;
 
-import java.util.UUID;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class DrinkResult {

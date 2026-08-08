@@ -20,7 +20,6 @@ public class SearchDrinksRequest {
 
   private String search;
   private UUID shopId;
-  private UUID drinkId;
 
   @Pattern(
       regexp =

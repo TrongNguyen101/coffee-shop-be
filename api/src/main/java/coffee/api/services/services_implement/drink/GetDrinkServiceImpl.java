@@ -6,10 +6,6 @@ import coffee.api.dto.response.base_response.PaginationMeta;
 import coffee.api.dto.result.DrinkResult;
 import coffee.api.mapper.GetDrinksMapper;
 import coffee.api.services.services_interface.drink.IGetDrinkService;
-import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.javassist.NotFoundException;
-import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -27,17 +23,11 @@ public class GetDrinkServiceImpl implements IGetDrinkService {
       SearchDrinksRequest request, String currentUserRoleName, UUID currentUserShopId) {
     long totalElements =
         getDrinksMapper.countDrinksFiltered(
-            request.getDrinkId(),
-      request.trimmedSearch(), currentUserShopId, currentUserRoleName);
-
-    if (request.getDrinkId() != null && totalElements == 0) {
-      throw new NotFoundException("Drink not found with id: " + request.getDrinkId());
-    }
+            request.trimmedSearch(), currentUserShopId, currentUserRoleName);
 
     List<DrinkResult> drinks =
         getDrinksMapper.getDrinksFiltered(
-            request.getDrinkId(),
-      request.trimmedSearch(),
+            request.trimmedSearch(),
             request.getSortBy(),
             request.getSortDirection().toString(),
             request.getSize(),
@@ -60,5 +50,15 @@ public class GetDrinkServiceImpl implements IGetDrinkService {
             .build();
 
     return PageResponse.of("Get drinks successfully", drinks, pagination);
+  }
+
+  private String normalizeStatus(String rawStatus) {
+    if (rawStatus == null) return "UNKNOWN";
+
+    return switch (rawStatus) {
+      case "1", "ACTIVE" -> "Đang bán";
+      case "0", "INACTIVE" -> "Ngừng bán";
+      default -> "Không xác định";
+    };
   }
 }

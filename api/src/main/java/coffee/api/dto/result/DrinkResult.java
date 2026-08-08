@@ -1,5 +1,6 @@
 package coffee.api.dto.result;
 
+import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 

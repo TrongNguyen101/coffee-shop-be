@@ -5,9 +5,8 @@ import coffee.api.enums.ValidationMessage;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
-
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class SearchDrinksRequest {
@@ -24,9 +23,9 @@ public class SearchDrinksRequest {
   private UUID drinkId;
 
   @Pattern(
-    regexp = "^(drinkId|drinkCategoryId|drinkName|size|price|status|createdAt|updatedAt|isDeleted)$",
-    message = ValidationMessage.Msg.SORT_BY_INVALID
-  )
+      regexp =
+          "^(drinkId|drinkCategoryId|drinkName|size|price|status|createdAt|updatedAt|isDeleted)$",
+      message = ValidationMessage.Msg.SORT_BY_INVALID)
   private String sortBy = "drinkId";
 
   private SortDirection sortDirection = SortDirection.ASC;

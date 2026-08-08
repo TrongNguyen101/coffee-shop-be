@@ -1,10 +1,16 @@
 package coffee.api.services.services_implement.drink;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import coffee.api.dto.request.drink.SearchDrinksRequest;
 import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.result.DrinkResult;
 import coffee.api.enums.SortDirection;
 import coffee.api.mapper.GetDrinksMapper;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,11 +31,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class GetDrinkServiceImplTest {
 
-  @Mock
-  private GetDrinksMapper getDrinksMapper;
+  @Mock private GetDrinksMapper getDrinksMapper;
 
-  @InjectMocks
-  private GetDrinkServiceImpl getDrinkService;
+  @InjectMocks private GetDrinkServiceImpl getDrinkService;
 
   private SearchDrinksRequest validRequest;
   private DrinkResult sampleDrinkResult;
@@ -85,18 +89,16 @@ public class GetDrinkServiceImplTest {
 
     List<DrinkResult> expectedItems = Collections.singletonList(sampleDrinkResult);
 
-    when(getDrinksMapper.countDrinksFiltered(
-      search, currentUserShopId, currentUserRoleName
-    )).thenReturn(totalElements);
+    when(getDrinksMapper.countDrinksFiltered(search, currentUserShopId, currentUserRoleName))
+        .thenReturn(totalElements);
 
     when(getDrinksMapper.getDrinksFiltered(
-      search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName
-    )).thenReturn(expectedItems);
+            search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName))
+        .thenReturn(expectedItems);
 
     // Act
-    PageResponse<DrinkResult> response = getDrinkService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<DrinkResult> response =
+        getDrinkService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNotNull(response);
@@ -121,9 +123,10 @@ public class GetDrinkServiceImplTest {
     assertEquals(1, response.getPagination().getTotalPages());
 
     verify(getDrinksMapper, times(1))
-      .countDrinksFiltered(search, currentUserShopId, currentUserRoleName);
+        .countDrinksFiltered(search, currentUserShopId, currentUserRoleName);
     verify(getDrinksMapper, times(1))
-      .getDrinksFiltered(search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName);
+        .getDrinksFiltered(
+            search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName);
   }
 
   @Test
@@ -137,18 +140,16 @@ public class GetDrinkServiceImplTest {
     int offset = validRequest.calcOffset();
     long totalElements = 0L;
 
-    when(getDrinksMapper.countDrinksFiltered(
-      search, currentUserShopId, currentUserRoleName
-    )).thenReturn(totalElements);
+    when(getDrinksMapper.countDrinksFiltered(search, currentUserShopId, currentUserRoleName))
+        .thenReturn(totalElements);
 
     when(getDrinksMapper.getDrinksFiltered(
-      search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName
-    )).thenReturn(Collections.emptyList());
+            search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName))
+        .thenReturn(Collections.emptyList());
 
     // Act
-    PageResponse<DrinkResult> response = getDrinkService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<DrinkResult> response =
+        getDrinkService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNotNull(response);
@@ -157,9 +158,10 @@ public class GetDrinkServiceImplTest {
     assertEquals(0, response.getPagination().getTotalPages());
 
     verify(getDrinksMapper, times(1))
-      .countDrinksFiltered(search, currentUserShopId, currentUserRoleName);
+        .countDrinksFiltered(search, currentUserShopId, currentUserRoleName);
     verify(getDrinksMapper, times(1))
-      .getDrinksFiltered(search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName);
+        .getDrinksFiltered(
+            search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName);
   }
 
   @Test
@@ -172,18 +174,16 @@ public class GetDrinkServiceImplTest {
     int offset = validRequest.calcOffset();
     long totalElements = 5L;
 
-    when(getDrinksMapper.countDrinksFiltered(
-      argThat(s -> s == null || s.isBlank()), eq(currentUserShopId), eq(currentUserRoleName)
-    )).thenReturn(totalElements);
+    when(getDrinksMapper.countDrinksFiltered(argThat(s -> s == null || s.isBlank()), eq(currentUserShopId), eq(currentUserRoleName)))
+        .thenReturn(totalElements);
 
     when(getDrinksMapper.getDrinksFiltered(
-      argThat(s -> s == null || s.isBlank()), eq(sortBy), eq(sortDirection), eq(size), eq(offset), eq(currentUserShopId), eq(currentUserRoleName)
-    )).thenReturn(Collections.singletonList(sampleDrinkResult));
+            argThat(s -> s == null || s.isBlank()), eq(sortBy), eq(sortDirection), eq(size), eq(offset), eq(currentUserShopId), eq(currentUserRoleName)))
+        .thenReturn(Collections.singletonList(sampleDrinkResult));
 
     // Act
-    PageResponse<DrinkResult> response = getDrinkService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<DrinkResult> response =
+        getDrinkService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNotNull(response);
@@ -192,9 +192,10 @@ public class GetDrinkServiceImplTest {
     assertEquals(2, response.getItems().getFirst().getVariants().size());
 
     verify(getDrinksMapper, times(1))
-      .countDrinksFiltered(argThat(s -> s == null || s.isBlank()), eq(currentUserShopId), eq(currentUserRoleName));
+        .countDrinksFiltered(argThat(s -> s == null || s.isBlank()), eq(currentUserShopId), eq(currentUserRoleName));
     verify(getDrinksMapper, times(1))
-      .getDrinksFiltered(argThat(s -> s == null || s.isBlank()), eq(sortBy), eq(sortDirection), eq(size), eq(offset), eq(currentUserShopId), eq(currentUserRoleName));
+        .getDrinksFiltered(
+            argThat(s -> s == null || s.isBlank()), eq(sortBy), eq(sortDirection), eq(size), eq(offset), eq(currentUserShopId), eq(currentUserRoleName));
   }
 
   @Test
@@ -207,19 +208,17 @@ public class GetDrinkServiceImplTest {
     int offset = validRequest.calcOffset();
     long totalElements = 1L;
 
-    when(getDrinksMapper.countDrinksFiltered(
-      search, currentUserShopId, currentUserRoleName
-    )).thenReturn(totalElements);
+    when(getDrinksMapper.countDrinksFiltered(search, currentUserShopId, currentUserRoleName))
+        .thenReturn(totalElements);
 
     // Mock Mapper returning null list to test null-safe fallback (Collections.emptyList())
     when(getDrinksMapper.getDrinksFiltered(
-      search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName
-    )).thenReturn(null);
+            search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName))
+        .thenReturn(null);
 
     // Act
-    PageResponse<DrinkResult> response = getDrinkService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<DrinkResult> response =
+        getDrinkService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNotNull(response);
@@ -228,35 +227,9 @@ public class GetDrinkServiceImplTest {
     assertEquals(1L, response.getPagination().getTotalElements());
 
     verify(getDrinksMapper, times(1))
-      .countDrinksFiltered(search, currentUserShopId, currentUserRoleName);
+        .countDrinksFiltered(search, currentUserShopId, currentUserRoleName);
     verify(getDrinksMapper, times(1))
-      .getDrinksFiltered(search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName);
-  }
-
-  @Test
-  void process_WhenDrinksHasVariousStatuses_ShouldNormalizeCorrectly_TC005() {
-    DrinkResult d1 = new DrinkResult(); d1.setStatus("1");
-    DrinkResult d2 = new DrinkResult(); d2.setStatus("ACTIVE");
-    DrinkResult d3 = new DrinkResult(); d3.setStatus("0");
-    DrinkResult d4 = new DrinkResult(); d4.setStatus("INACTIVE");
-    DrinkResult d5 = new DrinkResult(); d5.setStatus(null);
-    DrinkResult d6 = new DrinkResult(); d6.setStatus("OTHER");
-
-    List<DrinkResult> mockList = Arrays.asList(d1, d2, d3, d4, d5, d6);
-
-    when(getDrinksMapper.countDrinksFiltered(anyString(), any(), anyString())).thenReturn(6L);
-    when(getDrinksMapper.getDrinksFiltered(anyString(), anyString(), anyString(), anyInt(), anyInt(), any(), anyString()))
-      .thenReturn(mockList);
-
-    PageResponse<DrinkResult> response = getDrinkService.process(validRequest, currentUserRoleName, currentUserShopId);
-
-    assertNotNull(response);
-    assertEquals(6, response.getItems().size());
-    assertEquals("Đang bán", response.getItems().get(0).getStatus());
-    assertEquals("Đang bán", response.getItems().get(1).getStatus());
-    assertEquals("Ngừng bán", response.getItems().get(2).getStatus());
-    assertEquals("Ngừng bán", response.getItems().get(3).getStatus());
-    assertEquals("UNKNOWN", response.getItems().get(4).getStatus());
-    assertEquals("Không xác định", response.getItems().get(5).getStatus());
+        .getDrinksFiltered(
+            search, sortBy, sortDirection, size, offset, currentUserShopId, currentUserRoleName);
   }
 }

@@ -1,10 +1,9 @@
 package coffee.api.dto.result;
 
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class RevenueResult {

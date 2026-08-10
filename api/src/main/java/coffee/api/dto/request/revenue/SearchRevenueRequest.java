@@ -5,10 +5,9 @@ import coffee.api.enums.ValidationMessage;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
-
 import java.time.LocalDate;
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class SearchRevenueRequest {
@@ -31,9 +30,9 @@ public class SearchRevenueRequest {
   private Integer month;
 
   @Pattern(
-    regexp = "^(invoiceId|shopName|fullName|drinkName|createdAt|totalAmount|tableNumber|size|quantity|price)$",
-    message = ValidationMessage.Msg.SORT_BY_INVALID
-  )
+      regexp =
+          "^(invoiceId|shopName|fullName|drinkName|createdAt|totalAmount|tableNumber|size|quantity|price)$",
+      message = ValidationMessage.Msg.SORT_BY_INVALID)
   private String sortBy = "createdAt";
 
   private SortDirection sortDirection = SortDirection.DESC;

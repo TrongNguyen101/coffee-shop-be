@@ -1,18 +1,14 @@
 package coffee.api.services.services_implement.revenue;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import coffee.api.dto.request.revenue.SearchRevenueRequest;
 import coffee.api.dto.response.base_response.PageResponse;
 import coffee.api.dto.result.RevenueResult;
 import coffee.api.enums.Roles;
 import coffee.api.enums.SortDirection;
 import coffee.api.mapper.GetRevenueMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,18 +16,19 @@ import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class GetRevenueServiceImplTest {
 
-  @Mock
-  private GetRevenueMapper getRevenueMapper;
+  @Mock private GetRevenueMapper getRevenueMapper;
 
-  @InjectMocks
-  private GetRevenueServiceImpl getRevenueService;
+  @InjectMocks private GetRevenueServiceImpl getRevenueService;
 
   private SearchRevenueRequest validRequest;
   private RevenueResult sampleRevenueResult;
@@ -87,22 +84,36 @@ public class GetRevenueServiceImplTest {
     List<RevenueResult> expectedItems = Collections.singletonList(sampleRevenueResult);
 
     when(getRevenueMapper.countRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(totalElements);
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(totalElements);
 
     when(getRevenueMapper.getRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(expectedItems);
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(expectedItems);
 
     // Act
-    PageResponse<RevenueResult> response = getRevenueService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<RevenueResult> response =
+        getRevenueService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNotNull(response);
@@ -118,17 +129,32 @@ public class GetRevenueServiceImplTest {
     assertEquals(1L, response.getPagination().getTotalElements());
     assertEquals(1, response.getPagination().getTotalPages());
 
-    verify(getRevenueMapper, times(1)).countRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    );
-    verify(getRevenueMapper, times(1)).getRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    );
+    verify(getRevenueMapper, times(1))
+        .countRevenueFiltered(
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId);
+    verify(getRevenueMapper, times(1))
+        .getRevenueFiltered(
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId);
   }
 
   @Test
@@ -145,22 +171,36 @@ public class GetRevenueServiceImplTest {
     long totalElements = 0L;
 
     when(getRevenueMapper.countRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(totalElements);
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(totalElements);
 
     when(getRevenueMapper.getRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(Collections.emptyList());
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(Collections.emptyList());
 
     // Act
-    PageResponse<RevenueResult> response = getRevenueService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<RevenueResult> response =
+        getRevenueService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNotNull(response);
@@ -169,17 +209,32 @@ public class GetRevenueServiceImplTest {
     assertEquals(0L, response.getPagination().getTotalElements());
     assertEquals(0, response.getPagination().getTotalPages());
 
-    verify(getRevenueMapper, times(1)).countRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    );
-    verify(getRevenueMapper, times(1)).getRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    );
+    verify(getRevenueMapper, times(1))
+        .countRevenueFiltered(
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId);
+    verify(getRevenueMapper, times(1))
+        .getRevenueFiltered(
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId);
   }
 
   @Test
@@ -196,22 +251,36 @@ public class GetRevenueServiceImplTest {
     long totalElements = 5L;
 
     when(getRevenueMapper.countRevenueFiltered(
-      null, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(totalElements);
+            null,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(totalElements);
 
     when(getRevenueMapper.getRevenueFiltered(
-      null, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(Collections.singletonList(sampleRevenueResult));
+            null,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(Collections.singletonList(sampleRevenueResult));
 
     // Act
-    PageResponse<RevenueResult> response = getRevenueService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<RevenueResult> response =
+        getRevenueService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNull(search);
@@ -220,17 +289,32 @@ public class GetRevenueServiceImplTest {
     assertEquals(5L, response.getPagination().getTotalElements());
     assertEquals("Cà Phê Sữa", response.getItems().getFirst().getDrinkName());
 
-    verify(getRevenueMapper, times(1)).countRevenueFiltered(
-      null, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    );
-    verify(getRevenueMapper, times(1)).getRevenueFiltered(
-      null, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    );
+    verify(getRevenueMapper, times(1))
+        .countRevenueFiltered(
+            null,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId);
+    verify(getRevenueMapper, times(1))
+        .getRevenueFiltered(
+            null,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId);
   }
 
   @Test
@@ -246,22 +330,36 @@ public class GetRevenueServiceImplTest {
     long totalElements = 0L;
 
     when(getRevenueMapper.countRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(totalElements);
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(totalElements);
 
     when(getRevenueMapper.getRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(null);
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(null);
 
     // Act
-    PageResponse<RevenueResult> response = getRevenueService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<RevenueResult> response =
+        getRevenueService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNotNull(response);
@@ -270,17 +368,32 @@ public class GetRevenueServiceImplTest {
     assertTrue(response.getItems().isEmpty());
     assertEquals(0L, response.getPagination().getTotalElements());
 
-    verify(getRevenueMapper, times(1)).countRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    );
-    verify(getRevenueMapper, times(1)).getRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      startDateTime, endDateTime, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    );
+    verify(getRevenueMapper, times(1))
+        .countRevenueFiltered(
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId);
+    verify(getRevenueMapper, times(1))
+        .getRevenueFiltered(
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            startDateTime,
+            endDateTime,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId);
   }
 
   @Test
@@ -298,38 +411,67 @@ public class GetRevenueServiceImplTest {
     List<RevenueResult> expectedItems = Collections.singletonList(sampleRevenueResult);
 
     when(getRevenueMapper.countRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      null, null, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(totalElements);
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            null,
+            null,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(totalElements);
 
     when(getRevenueMapper.getRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      null, null, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    )).thenReturn(expectedItems);
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            null,
+            null,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId))
+        .thenReturn(expectedItems);
 
     // Act
-    PageResponse<RevenueResult> response = getRevenueService.process(
-      validRequest, currentUserRoleName, currentUserShopId
-    );
+    PageResponse<RevenueResult> response =
+        getRevenueService.process(validRequest, currentUserRoleName, currentUserShopId);
 
     // Assert
     assertNotNull(response);
     assertEquals("Get revenue statistics successfully", response.getMessage());
     assertEquals(1, response.getItems().size());
 
-    verify(getRevenueMapper, times(1)).countRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      null, null, validRequest.getYear(), validRequest.getMonth(),
-      currentUserRoleName, currentUserShopId
-    );
-    verify(getRevenueMapper, times(1)).getRevenueFiltered(
-      search, validRequest.getShopId(), validRequest.getInvoiceId(),
-      null, null, validRequest.getYear(), validRequest.getMonth(),
-      sortBy, sortDirection, size, offset,
-      currentUserRoleName, currentUserShopId
-    );
+    verify(getRevenueMapper, times(1))
+        .countRevenueFiltered(
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            null,
+            null,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            currentUserRoleName,
+            currentUserShopId);
+    verify(getRevenueMapper, times(1))
+        .getRevenueFiltered(
+            search,
+            validRequest.getShopId(),
+            validRequest.getInvoiceId(),
+            null,
+            null,
+            validRequest.getYear(),
+            validRequest.getMonth(),
+            sortBy,
+            sortDirection,
+            size,
+            offset,
+            currentUserRoleName,
+            currentUserShopId);
   }
 }

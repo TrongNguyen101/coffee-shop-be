@@ -22,13 +22,9 @@ public class GetRevenueController {
   @PostMapping("revenues")
   @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'STAFF')")
   public PageResponse<RevenueResult> GetRevenue(
-    @AuthenticationPrincipal CustomUserDetail customUserDetail,
-    @RequestBody @Valid SearchRevenueRequest request
-  ) {
+      @AuthenticationPrincipal CustomUserDetail customUserDetail,
+      @RequestBody @Valid SearchRevenueRequest request) {
     return getRevenueService.process(
-      request,
-      customUserDetail.getRoleName(),
-      customUserDetail.getShopId()
-    );
+        request, customUserDetail.getRoleName(), customUserDetail.getShopId());
   }
 }

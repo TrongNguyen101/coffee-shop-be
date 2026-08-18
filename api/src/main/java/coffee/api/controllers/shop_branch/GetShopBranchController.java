@@ -19,7 +19,7 @@ public class GetShopBranchController {
 
   private final IGetShopBranchService getShopBranchService;
 
-  @PostMapping("shop-branch")
+  @PostMapping("shop-branches")
   @PreAuthorize("hasAnyRole('OWNER')")
   public PageResponse<ShopBranchResult> shopBranchResult(
       @AuthenticationPrincipal CustomUserDetail customUserDetail,

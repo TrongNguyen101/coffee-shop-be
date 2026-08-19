@@ -232,7 +232,7 @@ public class GetShopBranchServiceImplTest {
     when(getShopBranchMapper.getShopBranchesFiltered(
             eq(search),
             eq(sortBy),
-            eq("ASC"), 
+            eq("ASC"),
             eq(size),
             eq(offset),
             eq(currentUserRoleName),

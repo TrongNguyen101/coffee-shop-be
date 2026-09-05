@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Data
 public class CorsProperties {
   private List<String> allowedOrigins;
+  private List<String> allowedOriginPatterns;
   private List<String> allowedMethods;
   private List<String> allowedHeaders;
   private boolean allowCredentials;

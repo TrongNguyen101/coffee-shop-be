@@ -69,7 +69,10 @@ public class SecurityConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
     
-    if (corsProperties.getAllowedOrigins() != null && !corsProperties.getAllowedOrigins().isEmpty()) {
+    // Use allowedOriginPatterns when credentials are enabled or patterns are provided
+    if (corsProperties.isAllowCredentials() && corsProperties.getAllowedOriginPatterns() != null && !corsProperties.getAllowedOriginPatterns().isEmpty()) {
+      config.setAllowedOriginPatterns(corsProperties.getAllowedOriginPatterns());
+    } else if (corsProperties.getAllowedOrigins() != null && !corsProperties.getAllowedOrigins().isEmpty()) {
       config.setAllowedOrigins(corsProperties.getAllowedOrigins());
     } else {
       // Fallback to localhost for development

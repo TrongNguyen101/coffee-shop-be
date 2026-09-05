@@ -41,15 +41,15 @@ public class CreateTablesServiceImpl implements ICreateTablesService {
 
     // Check if table number already exists in the shop
     Boolean isTableNumberExisted =
-        createTablesMapper.checkTableNumberExisted(
-            request.getShopId(), request.getTableNumber());
+        createTablesMapper.checkTableNumberExisted(request.getShopId(), request.getTableNumber());
     if (isTableNumberExisted) {
       throw new InvalidRequestException("Table number already exists in this shop");
     }
 
     // Validate status
     if (request.getStatus() == null || request.getStatus() < 1 || request.getStatus() > 3) {
-      throw new InvalidRequestException("Status must be 1 (available), 2 (occupied), or 3 (reserved)");
+      throw new InvalidRequestException(
+          "Status must be 1 (available), 2 (occupied), or 3 (reserved)");
     }
 
     createTablesMapper.createTable(

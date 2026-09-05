@@ -9,11 +9,11 @@ hooks:
       command: |
         #!/bin/bash
         # Handle special flags: --erd and --domain [name]
-      
+    
         input="$1"
         erd_file="/home/chrisnguyen/coffee-shop/coffee-shop-be/api/.github/agents/ERD.md"
         api_root="/home/chrisnguyen/coffee-shop/coffee-shop-be/api/src/main/java/coffee/api"
-      
+    
         # Check for --erd flag
         if [[ "$input" == *"--erd"* ]]; then
           if [[ -f "$erd_file" ]]; then
@@ -21,12 +21,12 @@ hooks:
             echo ""
           fi
         fi
-      
+    
         # Check for --domain [name] flag
         if [[ "$input" =~ --domain[[:space:]]+([a-zA-Z0-9_-]+) ]]; then
           domain_name="${BASH_REMATCH[1]}"
           domain_path="$api_root/$domain_name"
-        
+      
           # Create domain folder if it doesn't exist
           if [[ ! -d "$domain_path" ]]; then
             mkdir -p "$domain_path"
@@ -34,16 +34,16 @@ hooks:
           else
             echo "✓ Reusing existing domain folder: $domain_name"
           fi
-        
+      
           # Create subdirectories if they don't exist
           for subdir in controllers services_interface services_implement; do
             mkdir -p "$domain_path/$subdir"
           done
-        
+      
           echo "✓ Domain structure ready at: $domain_path"
           echo ""
         fi
-      
+    
         exit 0
       timeout: 5
       cwd: "/home/chrisnguyen/coffee-shop/coffee-shop-be/api"

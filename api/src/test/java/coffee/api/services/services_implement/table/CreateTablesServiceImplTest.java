@@ -109,7 +109,10 @@ public class CreateTablesServiceImplTest {
         () -> createTablesService.process(validRequest, ownerRole, currentUserShopId));
 
     verify(createTablesMapper, times(1))
-        .createTable(validRequest.getTableNumber(), null, validRequest.getStatus(),
+        .createTable(
+            validRequest.getTableNumber(),
+            null,
+            validRequest.getStatus(),
             validRequest.getShopId());
   }
 
@@ -202,8 +205,8 @@ public class CreateTablesServiceImplTest {
             InvalidRequestException.class,
             () -> createTablesService.process(validRequest, managerRole, currentUserShopId));
 
-    assertEquals("Status must be 1 (available), 2 (occupied), or 3 (reserved)", 
-        exception.getMessage());
+    assertEquals(
+        "Status must be 1 (available), 2 (occupied), or 3 (reserved)", exception.getMessage());
 
     verify(createTablesMapper, never()).createTable(anyInt(), anyString(), anyInt(), any());
   }
@@ -223,8 +226,8 @@ public class CreateTablesServiceImplTest {
             InvalidRequestException.class,
             () -> createTablesService.process(validRequest, managerRole, currentUserShopId));
 
-    assertEquals("Status must be 1 (available), 2 (occupied), or 3 (reserved)", 
-        exception.getMessage());
+    assertEquals(
+        "Status must be 1 (available), 2 (occupied), or 3 (reserved)", exception.getMessage());
 
     verify(createTablesMapper, never()).createTable(anyInt(), anyString(), anyInt(), any());
   }
@@ -243,7 +246,10 @@ public class CreateTablesServiceImplTest {
         () -> createTablesService.process(validRequest, ownerRole, currentUserShopId));
 
     verify(createTablesMapper, times(1))
-        .createTable(validRequest.getTableNumber(), validRequest.getDescription(), 2,
+        .createTable(
+            validRequest.getTableNumber(),
+            validRequest.getDescription(),
+            2,
             validRequest.getShopId());
   }
 }

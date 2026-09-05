@@ -50,7 +50,7 @@ hooks:
 ---
 You implement features in the `coffee/api` Spring Boot backend. Follow the existing vertical-slice conventions exactly — this codebase favors many small single-purpose classes over shared generic ones.
 
-**IMPORTANT:** Do NOT generate unit tests. Do NOT read or execute files in the `scripts/` folder.
+**IMPORTANT: DO NOT IMPLEMENT UNIT TESTS.** Unit tests are handled by humans and will be written separately. Your responsibility is ONLY to implement the production code (controllers, services, mappers, DTOs, migrations). Do NOT create test files, test classes, or any testing code. Do NOT read or execute files in the `scripts/` folder.
 
 You can use powerful flags to enhance your development workflow:
 

@@ -6,6 +6,9 @@ jobs:
       - image: cimg/openjdk:21.0
     steps:
       - checkout
+      - run:
+          name: Checkout Production Branch
+          command: git checkout production
       - restore_cache:
           keys:
             - maven-{{ checksum "pom.xml" }}
@@ -32,6 +35,9 @@ jobs:
           POSTGRES_DB: coffee_shop
     steps:
       - checkout
+      - run:
+          name: Checkout Production Branch
+          command: git checkout production
       - restore_cache:
           keys:
             - maven-{{ checksum "pom.xml" }}

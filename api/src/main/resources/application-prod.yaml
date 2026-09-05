@@ -36,8 +36,10 @@ springdoc:
 
 app:
   cors:
-    allowed-origins:
-      - "*"
+    # Use patterns instead of wildcard when allowCredentials is true
+    # Matches: https://domain.com, https://sub.domain.com, http://localhost:*, etc.
+    allowed-origin-patterns:
+      - "https://coffee-shop-fe.onrender.com"
     allowed-methods:
       - "GET"
       - "POST"

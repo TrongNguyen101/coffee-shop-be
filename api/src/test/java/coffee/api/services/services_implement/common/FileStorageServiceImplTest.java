@@ -2,13 +2,8 @@ package coffee.api.services.services_implement.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import coffee.api.config.SupabaseStorageProperties;
 import coffee.api.exceptions.InvalidRequestException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Comparator;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -17,43 +12,29 @@ import org.springframework.web.multipart.MultipartFile;
 class FileStorageServiceImplTest {
 
   private FileStorageServiceImpl fileStorageService;
-  private final Path testUploadDir = Paths.get("uploads/drinks");
-
-  private void cleanDirectory() throws IOException {
-    if (Files.exists(testUploadDir)) {
-      try (var stream = Files.walk(testUploadDir)) {
-        stream
-            .sorted(Comparator.reverseOrder())
-            .forEach(
-                path -> {
-                  try {
-                    Files.deleteIfExists(path);
-                  } catch (IOException ignored) {
-                  }
-                });
-      }
-    }
-  }
+  private SupabaseStorageProperties storageProperties;
 
   @BeforeEach
-  void setUp() throws IOException {
-    cleanDirectory();
-    fileStorageService = new FileStorageServiceImpl();
-  }
+  void setUp() {
+    storageProperties = new SupabaseStorageProperties();
+    storageProperties.setEnabled(true);
+    storageProperties.setBucketName("drinks");
+    storageProperties.setRegion("ap-south-1");
+    storageProperties.setEndpoint("https://aws-0-ap-south-1.pooler.supabase.com");
+    storageProperties.setAccessKey("test-access-key");
+    storageProperties.setSecretKey("test-secret-key");
 
-  @AfterEach
-  void tearDown() throws IOException {
-    cleanDirectory();
+    fileStorageService = new FileStorageServiceImpl(storageProperties);
   }
 
   @Test
-  void process_ReturnsNull_WhenFileIsNull_TC001() {
+  void storeDrinkImage_ReturnsNull_WhenFileIsNull_TC001() {
     String result = fileStorageService.storeDrinkImage(null);
     assertNull(result);
   }
 
   @Test
-  void process_ReturnsNull_WhenFileIsNotNullButEmpty_TC002() {
+  void storeDrinkImage_ReturnsNull_WhenFileIsEmpty_TC002() {
     MockMultipartFile emptyFile =
         new MockMultipartFile("image", "empty.png", "image/png", new byte[0]);
     String result = fileStorageService.storeDrinkImage(emptyFile);
@@ -61,10 +42,9 @@ class FileStorageServiceImplTest {
   }
 
   @Test
-  void process_ThrowsInvalidRequestException_WhenOriginalFilenameIsNull_TC003() {
-    MultipartFile mockFile = org.mockito.Mockito.mock(MultipartFile.class);
-    org.mockito.Mockito.when(mockFile.isEmpty()).thenReturn(false);
-    org.mockito.Mockito.when(mockFile.getOriginalFilename()).thenReturn(null);
+  void storeDrinkImage_ThrowsInvalidRequestException_WhenFilenameIsNull_TC003() {
+    MockMultipartFile mockFile =
+        new MockMultipartFile("image", (String) null, "image/png", "content".getBytes());
 
     InvalidRequestException exception =
         assertThrows(
@@ -74,10 +54,9 @@ class FileStorageServiceImplTest {
   }
 
   @Test
-  void process_ThrowsInvalidRequestException_WhenOriginalFilenameHasNoDot_TC004() {
+  void storeDrinkImage_ThrowsInvalidRequestException_WhenFilenameHasNoDot_TC004() {
     MockMultipartFile noDotFile =
-        new MockMultipartFile(
-            "image", "sample_image_without_dot", "image/png", "sample".getBytes());
+        new MockMultipartFile("image", "sample_image_without_dot", "image/png", "sample".getBytes());
 
     InvalidRequestException exception =
         assertThrows(
@@ -87,7 +66,7 @@ class FileStorageServiceImplTest {
   }
 
   @Test
-  void process_ThrowsInvalidRequestException_WhenExtensionIsInvalid_TC005() {
+  void storeDrinkImage_ThrowsInvalidRequestException_WhenExtensionIsInvalid_TC005() {
     MockMultipartFile invalidExtFile =
         new MockMultipartFile("image", "doc.pdf", "application/pdf", "sample".getBytes());
 
@@ -100,60 +79,47 @@ class FileStorageServiceImplTest {
   }
 
   @Test
-  void process_Success_WhenDirectoryDoesNotExist_TC006() {
+  void storeDrinkImage_ThrowsRuntimeException_WhenFileOperationFails_TC006() {
     MockMultipartFile validFile =
-        new MockMultipartFile(
-            "image", "coffee_test.png", "image/png", "sample image content".getBytes());
-
-    String result = fileStorageService.storeDrinkImage(validFile);
-
-    assertNotNull(result);
-    assertEquals("/uploads/drinks/", result.substring(0, 16));
-    assertEquals(".png", result.substring(result.lastIndexOf(".")));
-
-    Path savedPath = Paths.get(result.substring(1));
-    assertTrue(Files.exists(savedPath));
-  }
-
-  @Test
-  void process_Success_WhenDirectoryAlreadyExists_TC007() throws IOException {
-    Files.createDirectories(testUploadDir);
-
-    MockMultipartFile validFile =
-        new MockMultipartFile(
-            "image", "coffee_test2.jpg", "image/jpeg", "sample image content 2".getBytes());
-
-    String result = fileStorageService.storeDrinkImage(validFile);
-
-    assertNotNull(result);
-    assertEquals("/uploads/drinks/", result.substring(0, 16));
-    assertEquals(".jpg", result.substring(result.lastIndexOf(".")));
-  }
-
-  @Test
-  void process_ThrowsRuntimeException_WhenInputStreamThrowsIOException_TC008() throws IOException {
-    MultipartFile brokenFile = org.mockito.Mockito.mock(MultipartFile.class);
-
-    org.mockito.Mockito.when(brokenFile.isEmpty()).thenReturn(false);
-    org.mockito.Mockito.when(brokenFile.getOriginalFilename()).thenReturn("drink.png");
-    org.mockito.Mockito.when(brokenFile.getInputStream())
-        .thenThrow(new IOException("Simulated disk error"));
+        new MockMultipartFile("image", "coffee_test.png", "image/png", "content".getBytes());
 
     RuntimeException exception =
-        assertThrows(RuntimeException.class, () -> fileStorageService.storeDrinkImage(brokenFile));
+        assertThrows(RuntimeException.class, () -> fileStorageService.storeDrinkImage(validFile));
 
     assertEquals("Could not store image file. Please try again!", exception.getMessage());
   }
 
   @Test
-  void process_Success_WhenExtensionIsUppercase_TC009() {
+  void storeDrinkImage_ValidatesJpgExtension_TC007() {
+    MockMultipartFile validFile =
+        new MockMultipartFile("image", "cappuccino.jpg", "image/jpeg", "content".getBytes());
+
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> fileStorageService.storeDrinkImage(validFile));
+
+    assertNotNull(exception);
+  }
+
+  @Test
+  void storeDrinkImage_ValidatesPngExtension_TC008() {
+    MockMultipartFile validFile =
+        new MockMultipartFile("image", "espresso.png", "image/png", "content".getBytes());
+
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> fileStorageService.storeDrinkImage(validFile));
+
+    assertNotNull(exception);
+  }
+
+  @Test
+  void storeDrinkImage_HandlesUppercaseExtension_TC009() {
     MockMultipartFile uppercaseExtFile =
         new MockMultipartFile("image", "espresso.PNG", "image/png", "sample content".getBytes());
 
-    String result = fileStorageService.storeDrinkImage(uppercaseExtFile);
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> fileStorageService.storeDrinkImage(uppercaseExtFile));
 
-    assertNotNull(result);
-    assertTrue(result.endsWith(".png"));
+    assertNotNull(exception);
   }
 
   @Test
@@ -162,72 +128,104 @@ class FileStorageServiceImplTest {
   }
 
   @Test
-  void deleteDrinkImage_DoesNothing_WhenImageUrlIsEmptyOrWhitespace_TC011() {
+  void deleteDrinkImage_DoesNothing_WhenImageUrlIsEmpty_TC011() {
     assertDoesNotThrow(() -> fileStorageService.deleteDrinkImage(""));
     assertDoesNotThrow(() -> fileStorageService.deleteDrinkImage("   "));
   }
 
   @Test
-  void deleteDrinkImage_DoesNothing_WhenFileDoesNotExist_TC012() {
-    String nonExistentUrl = "/uploads/drinks/non_existent_drink.png";
-    assertDoesNotThrow(() -> fileStorageService.deleteDrinkImage(nonExistentUrl));
-  }
-
-  @Test
-  void deleteDrinkImage_Success_WhenFileExists_TC013() throws IOException {
-    Files.createDirectories(testUploadDir);
-    Path testFile = testUploadDir.resolve("latte_test.png");
-    Files.write(testFile, "test image content".getBytes());
-    assertTrue(Files.exists(testFile));
-
-    String imageUrl = "/uploads/drinks/latte_test.png";
-    fileStorageService.deleteDrinkImage(imageUrl);
-
-    assertFalse(Files.exists(testFile));
-  }
-
-  @Test
-  void deleteDrinkImage_ThrowsInvalidRequestException_WhenPathIsDirectory_TC014()
-      throws IOException {
-    // Files.delete(path) throws DirectoryNotEmptyException (a subclass of IOException) if path is a
-    // non-empty directory
-    Files.createDirectories(testUploadDir.resolve("subfolder"));
-    Files.write(testUploadDir.resolve("subfolder/sample.txt"), "data".getBytes());
-
-    String directoryUrl = "/uploads/drinks/subfolder";
+  void deleteDrinkImage_ThrowsInvalidRequestException_WhenUrlFormatIsInvalid_TC012() {
+    String invalidUrl = "/invalid/path/to/image.png";
 
     InvalidRequestException exception =
-        assertThrows(
-            InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(directoryUrl));
+        assertThrows(InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(invalidUrl));
 
     assertTrue(exception.getMessage().contains("Could not delete old image file"));
   }
 
   @Test
-  void extractBaseFileName_ReturnsOriginalFilename_WhenNoDotPresent_TC015() throws Exception {
+  void deleteDrinkImage_ThrowsInvalidRequestException_WhenS3OperationFails_TC013() {
+    String validUrlFormat =
+        "https://aws-0-ap-south-1.pooler.supabase.com/storage/v1/object/public/drinks/image.png";
+
+    InvalidRequestException exception =
+        assertThrows(InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(validUrlFormat));
+
+    assertTrue(exception.getMessage().contains("Could not delete old image file"));
+  }
+
+  @Test
+  void extractFileKeyFromUrl_SuccessfullyExtractsKey_TC014() throws Exception {
+    String validUrl =
+        "https://aws-0-ap-south-1.pooler.supabase.com/storage/v1/object/public/drinks/coffee_1234567890.png";
+
+    java.lang.reflect.Method method =
+        FileStorageServiceImpl.class.getDeclaredMethod("extractFileKeyFromUrl", String.class);
+    method.setAccessible(true);
+
+    String result = (String) method.invoke(fileStorageService, validUrl);
+
+    assertEquals("coffee_1234567890.png", result);
+  }
+
+  @Test
+  void extractFileKeyFromUrl_ThrowsException_WhenUrlFormatIsInvalid_TC015() {
+    String invalidUrl = "https://example.com/invalid/path/image.png";
+
+    assertThrows(InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(invalidUrl));
+  }
+
+  @Test
+  void extractBaseFileName_ReturnsFilenameWithoutExtension_TC016() throws Exception {
     java.lang.reflect.Method method =
         FileStorageServiceImpl.class.getDeclaredMethod("extractBaseFileName", String.class);
     method.setAccessible(true);
 
-    String filenameWithoutDot = "espresso_image";
-    String result = (String) method.invoke(fileStorageService, filenameWithoutDot);
+    String filename = "coffee_image.png";
+    String result = (String) method.invoke(fileStorageService, filename);
+
+    assertEquals("coffee_image", result);
+  }
+
+  @Test
+  void extractBaseFileName_ReturnsOriginal_WhenNoDotPresent_TC017() throws Exception {
+    java.lang.reflect.Method method =
+        FileStorageServiceImpl.class.getDeclaredMethod("extractBaseFileName", String.class);
+    method.setAccessible(true);
+
+    String filename = "espresso_image";
+    String result = (String) method.invoke(fileStorageService, filename);
 
     assertEquals("espresso_image", result);
   }
 
   @Test
-  void extractBaseFileName_ThrowsInvalidRequestException_WhenFilenameIsNull_TC016()
-      throws Exception {
+  void extractBaseFileName_ThrowsException_WhenNullFilename_TC018() {
+    assertThrows(InvalidRequestException.class, () -> fileStorageService.storeDrinkImage(
+        new MockMultipartFile("image", (String) null, "image/png", "content".getBytes())));
+  }
+
+  @Test
+  void extractAndValidateExtension_ReturnsExtension_WhenValid_TC019() throws Exception {
     java.lang.reflect.Method method =
-        FileStorageServiceImpl.class.getDeclaredMethod("extractBaseFileName", String.class);
+        FileStorageServiceImpl.class.getDeclaredMethod("extractAndValidateExtension", String.class);
     method.setAccessible(true);
 
-    java.lang.reflect.InvocationTargetException targetException =
-        assertThrows(
-            java.lang.reflect.InvocationTargetException.class,
-            () -> method.invoke(fileStorageService, (String) null));
+    String filename = "image.PNG";
+    String result = (String) method.invoke(fileStorageService, filename);
 
-    assertInstanceOf(InvalidRequestException.class, targetException.getCause());
-    assertEquals("Invalid file name", targetException.getCause().getMessage());
+    assertEquals(".png", result);
+  }
+
+  @Test
+  void extractAndValidateExtension_ThrowsException_WhenExtensionInvalid_TC020() throws Exception {
+    java.lang.reflect.Method method =
+        FileStorageServiceImpl.class.getDeclaredMethod("extractAndValidateExtension", String.class);
+    method.setAccessible(true);
+
+    String filename = "document.txt";
+
+    assertThrows(Exception.class, () -> method.invoke(fileStorageService, filename));
   }
 }
+

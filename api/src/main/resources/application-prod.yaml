@@ -4,9 +4,9 @@ spring:
       on-profile: prod
 
   datasource:
-    # Changed 'localhost' to ${DB_HOST:localhost} so it adapts to the Docker network container name
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:coffee-shop-db}
-    username: ${DB_USERNAME:postgres}
+    # Supabase connection
+    url: jdbc:postgresql://${DB_HOST:aws-0-ap-south-1.pooler.supabase.com}:${DB_PORT:5432}/${DB_NAME:postgres}
+    username: ${DB_USERNAME:postgres.ldamaltfehzopoqfywpa}
     password: ${DB_PASSWORD:postgres@1234}
     driver-class-name: org.postgresql.Driver
 
@@ -33,6 +33,15 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+storage:
+  supabase:
+    enabled: true
+    bucket-name: ${SUPABASE_BUCKET_NAME:drink-images}
+    region: ${SUPABASE_REGION:ap-south-1}
+    endpoint: ${SUPABASE_ENDPOINT:https://ldamaltfehzopoqfywpa.storage.supabase.co/storage/v1/s3}
+    access-key: ${SUPABASE_ACCESS_KEY:f502b28da5b2860cee5d0c5717ec5412}
+    secret-key: ${SUPABASE_SECRET_KEY:00143a63b282f066de789779df48b3e47630ed40e265fdb59a322d678cf33d82}
 
 logging:
   level:

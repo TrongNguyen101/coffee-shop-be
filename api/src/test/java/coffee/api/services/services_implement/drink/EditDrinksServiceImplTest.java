@@ -8,6 +8,7 @@ import coffee.api.dto.request.drink.EditDrinksRequest;
 import coffee.api.exceptions.DataNotFoundException;
 import coffee.api.mapper.CommonMapper;
 import coffee.api.mapper.UpdateDrinkMapper;
+import coffee.api.services.services_interface.common.IFileStorageService;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,8 @@ public class EditDrinksServiceImplTest {
   @Mock private CommonMapper commonMapper;
 
   @Mock private UpdateDrinkMapper editDrinkMapper;
+
+  @Mock private IFileStorageService fileStorageService;
 
   @InjectMocks private EditDrinksServiceImpl editDrinksService;
 
@@ -58,7 +61,9 @@ public class EditDrinksServiceImplTest {
 
     // Act
     assertDoesNotThrow(
-        () -> editDrinksService.process(validRequest, currentUserRoleName, currentUserShopId));
+        () ->
+            editDrinksService.process(
+                validRequest, null, currentUserRoleName, currentUserShopId));
 
     // Assert
     verify(commonMapper, times(1))
@@ -86,7 +91,9 @@ public class EditDrinksServiceImplTest {
 
     // Act & Assert
     assertDoesNotThrow(
-        () -> editDrinksService.process(validRequest, currentUserRoleName, currentUserShopId));
+        () ->
+            editDrinksService.process(
+                validRequest, null, currentUserRoleName, currentUserShopId));
 
     verify(editDrinkMapper, times(1))
         .updateDrink(
@@ -112,7 +119,9 @@ public class EditDrinksServiceImplTest {
 
     // Act
     assertDoesNotThrow(
-        () -> editDrinksService.process(validRequest, currentUserRoleName, currentUserShopId));
+        () ->
+            editDrinksService.process(
+                validRequest, null, currentUserRoleName, currentUserShopId));
 
     // Assert
     verify(editDrinkMapper, times(1))
@@ -143,7 +152,9 @@ public class EditDrinksServiceImplTest {
     DataNotFoundException exception =
         assertThrows(
             DataNotFoundException.class,
-            () -> editDrinksService.process(validRequest, currentUserRoleName, currentUserShopId));
+            () ->
+                editDrinksService.process(
+                    validRequest, null, currentUserRoleName, currentUserShopId));
 
     assertEquals("Data not found", exception.getMessage());
     assertEquals(validRequest.getDrinkId(), exception.getId());
@@ -169,7 +180,9 @@ public class EditDrinksServiceImplTest {
     DataIntegrityViolationException exception =
         assertThrows(
             DataIntegrityViolationException.class,
-            () -> editDrinksService.process(validRequest, currentUserRoleName, currentUserShopId));
+            () ->
+                editDrinksService.process(
+                    validRequest, null, currentUserRoleName, currentUserShopId));
 
     assertEquals("Database constraint violation", exception.getMessage());
     verify(editDrinkMapper, times(1))
@@ -186,7 +199,9 @@ public class EditDrinksServiceImplTest {
     RuntimeException exception =
         assertThrows(
             RuntimeException.class,
-            () -> editDrinksService.process(validRequest, currentUserRoleName, currentUserShopId));
+            () ->
+                editDrinksService.process(
+                    validRequest, null, currentUserRoleName, currentUserShopId));
 
     assertEquals("Database connection timeout", exception.getMessage());
     verify(editDrinkMapper, never())

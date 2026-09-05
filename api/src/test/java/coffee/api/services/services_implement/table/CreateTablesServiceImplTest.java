@@ -1,6 +1,9 @@
 package coffee.api.services.services_implement.table;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import coffee.api.dto.request.table.CreateTablesRequest;
@@ -250,6 +253,48 @@ public class CreateTablesServiceImplTest {
             validRequest.getTableNumber(),
             validRequest.getDescription(),
             2,
+            validRequest.getShopId());
+  }
+
+  @Test
+  void process_ThrowsInvalidRequestException_WhenStatusIsNull_TC011() {
+    // Arrange
+    validRequest.setStatus(null);
+    when(commonMapper.checkShopExisted(validRequest.getShopId())).thenReturn(true);
+    when(createTablesMapper.checkTableNumberExisted(
+            validRequest.getShopId(), validRequest.getTableNumber()))
+        .thenReturn(false);
+
+    // Act & Assert
+    InvalidRequestException exception =
+        assertThrows(
+            InvalidRequestException.class,
+            () -> createTablesService.process(validRequest, managerRole, currentUserShopId));
+
+    assertEquals(
+        "Status must be 1 (available), 2 (occupied), or 3 (reserved)", exception.getMessage());
+
+    verify(createTablesMapper, never()).createTable(anyInt(), anyString(), any(), any());
+  }
+
+  @Test
+  void process_Success_WithStatusReserved_TC012() {
+    // Arrange
+    validRequest.setStatus(3);
+    when(commonMapper.checkShopExisted(validRequest.getShopId())).thenReturn(true);
+    when(createTablesMapper.checkTableNumberExisted(
+            validRequest.getShopId(), validRequest.getTableNumber()))
+        .thenReturn(false);
+
+    // Act & Assert
+    assertDoesNotThrow(
+        () -> createTablesService.process(validRequest, ownerRole, currentUserShopId));
+
+    verify(createTablesMapper, times(1))
+        .createTable(
+            validRequest.getTableNumber(),
+            validRequest.getDescription(),
+            3,
             validRequest.getShopId());
   }
 }

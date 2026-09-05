@@ -62,7 +62,13 @@ storage:
 
 logging:
   level:
-    root: info
-    # Keep SQL execution hidden unless diagnosing an emergency
-    org.hibernate.SQL: error
-    org.hibernate.orm.results: error
+    root: warn
+    # Enable logging for API calls
+    coffee.api: info
+    # Log HTTP requests and responses
+    org.springframework.web: info
+    org.springframework.security: info
+    # Show SQL queries in production for debugging
+    org.hibernate.SQL: info
+    org.hibernate.orm.results: info
+    org.mybatis: info

@@ -9,6 +9,9 @@ cd "$PROJECT_DIR"
 echo "Starting database..."
 docker compose up -d --wait
 
+echo "Cleaning project..."
+./mvnw clean
+
 echo "Running tests..."
 ./mvnw test
 

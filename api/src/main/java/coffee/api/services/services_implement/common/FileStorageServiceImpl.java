@@ -79,4 +79,23 @@ public class FileStorageServiceImpl implements IFileStorageService {
 
     return originalFilename.substring(0, lastDotIndex);
   }
+
+  @Override
+  public void deleteDrinkImage(String imageUrl) {
+    if (imageUrl == null || imageUrl.trim().isEmpty()) {
+      return;
+    }
+
+    try {
+      // Remove the leading path prefix and construct the full file path
+      String relativePath = imageUrl.replace("/uploads/drinks/", "");
+      Path filePath = Paths.get(UPLOAD_DIR).resolve(relativePath);
+
+      if (Files.exists(filePath)) {
+        Files.delete(filePath);
+      }
+    } catch (IOException e) {
+      throw new InvalidRequestException("Could not delete old image file: " + imageUrl);
+    }
+  }
 }

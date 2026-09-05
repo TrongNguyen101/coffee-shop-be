@@ -96,7 +96,7 @@ class FileStorageServiceImplTest {
             InvalidRequestException.class,
             () -> fileStorageService.storeDrinkImage(invalidExtFile));
 
-    assertEquals("Only JPG, JPEG, PNG, and WEBP image files are allowed", exception.getMessage());
+    assertEquals("Only JPG and PNG image files are allowed", exception.getMessage());
   }
 
   @Test

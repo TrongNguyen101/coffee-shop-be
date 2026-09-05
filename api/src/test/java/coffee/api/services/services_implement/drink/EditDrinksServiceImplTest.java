@@ -1,6 +1,7 @@
 package coffee.api.services.services_implement.drink;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -17,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 public class EditDrinksServiceImplTest {
@@ -60,10 +62,7 @@ public class EditDrinksServiceImplTest {
         .thenReturn(true);
 
     // Act
-    assertDoesNotThrow(
-        () ->
-            editDrinksService.process(
-                validRequest, null, currentUserRoleName, currentUserShopId));
+    editDrinksService.process(validRequest, null, currentUserRoleName, currentUserShopId);
 
     // Assert
     verify(commonMapper, times(1))
@@ -89,12 +88,10 @@ public class EditDrinksServiceImplTest {
             validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
         .thenReturn(null);
 
-    // Act & Assert
-    assertDoesNotThrow(
-        () ->
-            editDrinksService.process(
-                validRequest, null, currentUserRoleName, currentUserShopId));
+    // Act
+    editDrinksService.process(validRequest, null, currentUserRoleName, currentUserShopId);
 
+    // Assert
     verify(editDrinkMapper, times(1))
         .updateDrink(
             eq(validRequest.getDrinkId()),
@@ -118,10 +115,7 @@ public class EditDrinksServiceImplTest {
         .thenReturn(true);
 
     // Act
-    assertDoesNotThrow(
-        () ->
-            editDrinksService.process(
-                validRequest, null, currentUserRoleName, currentUserShopId));
+    editDrinksService.process(validRequest, null, currentUserRoleName, currentUserShopId);
 
     // Assert
     verify(editDrinkMapper, times(1))
@@ -137,13 +131,201 @@ public class EditDrinksServiceImplTest {
             currentUserRoleName);
   }
 
+  @Test
+  void process_Success_WhenImageFileProvidedAndOldImageExists_TC004() {
+    // Arrange
+    MultipartFile mockFile = mock(MultipartFile.class);
+    when(mockFile.isEmpty()).thenReturn(false);
+
+    String oldImageUrl = "https://example.com/old-drink.jpg";
+    String newStoredUrl = "https://example.com/new-drink.jpg";
+
+    when(commonMapper.checkDrinkExisted(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(true);
+    when(editDrinkMapper.getDrinkImageUrl(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(oldImageUrl);
+    when(fileStorageService.storeDrinkImage(mockFile)).thenReturn(newStoredUrl);
+
+    // Act
+    editDrinksService.process(validRequest, mockFile, currentUserRoleName, currentUserShopId);
+
+    // Assert
+    verify(fileStorageService, times(1)).storeDrinkImage(mockFile);
+    verify(fileStorageService, times(1)).deleteDrinkImage(oldImageUrl);
+    verify(editDrinkMapper, times(1))
+        .updateDrink(
+            validRequest.getDrinkId(),
+            validRequest.getDrinkName(),
+            newStoredUrl,
+            validRequest.getStatus(),
+            validRequest.getDrinkCategoryId(),
+            validRequest.getPrice(),
+            validRequest.getSize(),
+            currentUserShopId,
+            currentUserRoleName);
+  }
+
+  @Test
+  void process_Success_WhenImageFileProvidedAndOldImageIsNull_TC005() {
+    // Arrange
+    MultipartFile mockFile = mock(MultipartFile.class);
+    when(mockFile.isEmpty()).thenReturn(false);
+
+    String newStoredUrl = "https://example.com/new-drink.jpg";
+
+    when(commonMapper.checkDrinkExisted(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(true);
+    when(editDrinkMapper.getDrinkImageUrl(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(null);
+    when(fileStorageService.storeDrinkImage(mockFile)).thenReturn(newStoredUrl);
+
+    // Act
+    editDrinksService.process(validRequest, mockFile, currentUserRoleName, currentUserShopId);
+
+    // Assert
+    verify(fileStorageService, times(1)).storeDrinkImage(mockFile);
+    verify(fileStorageService, never()).deleteDrinkImage(anyString());
+    verify(editDrinkMapper, times(1))
+        .updateDrink(
+            validRequest.getDrinkId(),
+            validRequest.getDrinkName(),
+            newStoredUrl,
+            validRequest.getStatus(),
+            validRequest.getDrinkCategoryId(),
+            validRequest.getPrice(),
+            validRequest.getSize(),
+            currentUserShopId,
+            currentUserRoleName);
+  }
+
+  @Test
+  void process_Success_WhenImageFileProvidedAndOldImageIsBlank_TC006() {
+    // Arrange
+    MultipartFile mockFile = mock(MultipartFile.class);
+    when(mockFile.isEmpty()).thenReturn(false);
+
+    String newStoredUrl = "https://example.com/new-drink.jpg";
+
+    when(commonMapper.checkDrinkExisted(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(true);
+    when(editDrinkMapper.getDrinkImageUrl(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn("   ");
+    when(fileStorageService.storeDrinkImage(mockFile)).thenReturn(newStoredUrl);
+
+    // Act
+    editDrinksService.process(validRequest, mockFile, currentUserRoleName, currentUserShopId);
+
+    // Assert
+    verify(fileStorageService, times(1)).storeDrinkImage(mockFile);
+    verify(fileStorageService, never()).deleteDrinkImage(anyString());
+  }
+
+  @Test
+  void process_Success_WhenImageFileIsEmpty_TC007() {
+    // Arrange: imageFile != null but imageFile.isEmpty() is true
+    MultipartFile mockFile = mock(MultipartFile.class);
+    when(mockFile.isEmpty()).thenReturn(true);
+
+    when(commonMapper.checkDrinkExisted(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(true);
+
+    // Act
+    editDrinksService.process(validRequest, mockFile, currentUserRoleName, currentUserShopId);
+
+    // Assert
+    verify(fileStorageService, never()).storeDrinkImage(any());
+    verify(fileStorageService, never()).deleteDrinkImage(anyString());
+    verify(editDrinkMapper, times(1))
+        .updateDrink(
+            validRequest.getDrinkId(),
+            validRequest.getDrinkName(),
+            validRequest.getImageUrl(),
+            validRequest.getStatus(),
+            validRequest.getDrinkCategoryId(),
+            validRequest.getPrice(),
+            validRequest.getSize(),
+            currentUserShopId,
+            currentUserRoleName);
+  }
+
+  @Test
+  void process_Success_WhenNoImageFileAndRequestImageUrlIsNull_TC008() {
+    // Arrange: Fallback to existing image in database when request has no imageUrl
+    validRequest.setImageUrl(null);
+    String existingImageUrl = "https://example.com/existing-image.jpg";
+
+    when(commonMapper.checkDrinkExisted(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(true);
+    when(editDrinkMapper.getDrinkImageUrl(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(existingImageUrl);
+
+    // Act
+    editDrinksService.process(validRequest, null, currentUserRoleName, currentUserShopId);
+
+    // Assert
+    verify(editDrinkMapper, times(1))
+        .getDrinkImageUrl(validRequest.getDrinkId(), currentUserRoleName, currentUserShopId);
+    verify(editDrinkMapper, times(1))
+        .updateDrink(
+            validRequest.getDrinkId(),
+            validRequest.getDrinkName(),
+            existingImageUrl,
+            validRequest.getStatus(),
+            validRequest.getDrinkCategoryId(),
+            validRequest.getPrice(),
+            validRequest.getSize(),
+            currentUserShopId,
+            currentUserRoleName);
+  }
+
+  @Test
+  void process_Success_WhenNoImageFileAndRequestImageUrlIsBlank_TC009() {
+    // Arrange: Triggers imageUrlToUpdate.trim().isEmpty()
+    validRequest.setImageUrl("   ");
+    String existingImageUrl = "https://example.com/existing-image.jpg";
+
+    when(commonMapper.checkDrinkExisted(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(true);
+    when(editDrinkMapper.getDrinkImageUrl(
+            validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
+        .thenReturn(existingImageUrl);
+
+    // Act
+    editDrinksService.process(validRequest, null, currentUserRoleName, currentUserShopId);
+
+    // Assert
+    verify(editDrinkMapper, times(1))
+        .getDrinkImageUrl(validRequest.getDrinkId(), currentUserRoleName, currentUserShopId);
+    verify(editDrinkMapper, times(1))
+        .updateDrink(
+            validRequest.getDrinkId(),
+            validRequest.getDrinkName(),
+            existingImageUrl,
+            validRequest.getStatus(),
+            validRequest.getDrinkCategoryId(),
+            validRequest.getPrice(),
+            validRequest.getSize(),
+            currentUserShopId,
+            currentUserRoleName);
+  }
+
   // =========================================================================
   // ABNORMAL CASES
   // =========================================================================
 
   @Test
-  void process_ThrowsDataNotFoundException_WhenDrinkDoesNotExist_TC004() {
-    // Arrange: Only Boolean.FALSE explicitly triggers DataNotFoundException
+  void process_ThrowsDataNotFoundException_WhenDrinkDoesNotExist_TC010() {
+    // Arrange: Boolean.FALSE explicitly triggers DataNotFoundException
     when(commonMapper.checkDrinkExisted(
             validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
         .thenReturn(false);
@@ -166,7 +348,7 @@ public class EditDrinksServiceImplTest {
   }
 
   @Test
-  void process_ThrowsDataIntegrityViolationException_WhenUpdateDrinkMapperFails_TC005() {
+  void process_ThrowsDataIntegrityViolationException_WhenUpdateDrinkMapperFails_TC011() {
     // Arrange
     when(commonMapper.checkDrinkExisted(
             validRequest.getDrinkId(), currentUserRoleName, currentUserShopId))
@@ -190,7 +372,7 @@ public class EditDrinksServiceImplTest {
   }
 
   @Test
-  void process_ThrowsException_WhenCommonMapperCheckFails_TC006() {
+  void process_ThrowsException_WhenCommonMapperCheckFails_TC012() {
     // Arrange
     when(commonMapper.checkDrinkExisted(any(), anyString(), any()))
         .thenThrow(new RuntimeException("Database connection timeout"));

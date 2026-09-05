@@ -4,9 +4,9 @@ spring:
       on-profile: prod
 
   datasource:
-    # Changed 'localhost' to ${DB_HOST:localhost} so it adapts to the Docker network container name
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:coffee-shop-db}
-    username: ${DB_USERNAME:postgres}
+    # Supabase connection
+    url: jdbc:postgresql://${DB_HOST:aws-0-ap-south-1.pooler.supabase.com}:${DB_PORT:5432}/${DB_NAME:postgres}
+    username: ${DB_USERNAME:postgres.ldamaltfehzopoqfywpa}
     password: ${DB_PASSWORD:postgres@1234}
     driver-class-name: org.postgresql.Driver
 

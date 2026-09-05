@@ -37,7 +37,7 @@ springdoc:
 app:
   cors:
     allowed-origins:
-      - "https://coffee-shop-fe.onrender.com"
+      - "*"
     allowed-methods:
       - "GET"
       - "POST"

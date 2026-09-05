@@ -13,3 +13,19 @@ echo "Running tests..."
 ./mvnw test
 
 echo "Tests completed."
+
+echo "Opening JaCoCo coverage report..."
+REPORT_PATH="$PROJECT_DIR/target/site/jacoco/index.html"
+
+# Check if running on WSL
+if grep -qi microsoft /proc/version &> /dev/null; then
+  # Convert WSL path to Windows path and open with Windows default browser
+  WINDOWS_PATH=$(wslpath -w "$REPORT_PATH")
+  cmd.exe /c "start $WINDOWS_PATH" 2>/dev/null || echo "Coverage report generated at: $REPORT_PATH"
+elif command -v xdg-open &> /dev/null; then
+  xdg-open "$REPORT_PATH"
+elif command -v open &> /dev/null; then
+  open "$REPORT_PATH"
+else
+  echo "Coverage report generated at: $REPORT_PATH"
+fi

@@ -59,11 +59,11 @@ storage:
   supabase:
     enabled: true
     bucket-name: ${SUPABASE_BUCKET_NAME:drinks}
-    region: ${SUPABASE_REGION:ap-south-1}
-    endpoint: ${SUPABASE_ENDPOINT:https://aws-0-ap-south-1.pooler.supabase.com}
-    public-url: ${SUPABASE_PUBLIC_URL:https://xauxrvolraonrrxavkrt.storage.supabase.co}
-    access-key: ${SUPABASE_ACCESS_KEY:0066e2037add835f311c4e3f91a0b432}
-    secret-key: ${SUPABASE_SECRET_KEY:e93f1bcc3d43a565f7bae26bd1243bca4f5ac1068a15a0887642989103e8f34f}
+    region: ${SUPABASE_REGION:ap-southeast-1}
+    endpoint: ${SUPABASE_ENDPOINT:https://xauxrvolraonrrxavkrt.storage.supabase.co/storage/v1/s3}
+    public-url: ${SUPABASE_PUBLIC_URL:https://xauxrvolraonrrxavkrt.supabase.co/storage/v1/object/public}
+    access-key: ${SUPABASE_ACCESS_KEY:0c03e80fa11360e1d89d67accc97e881}
+    secret-key: ${SUPABASE_SECRET_KEY:22991f32da268f8012e5fe40185b7eccba4506d41638bc6f474a4bc47fe47c8c}
 
 logging:
   level:

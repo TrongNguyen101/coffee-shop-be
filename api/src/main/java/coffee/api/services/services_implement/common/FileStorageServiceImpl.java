@@ -82,7 +82,7 @@ public class FileStorageServiceImpl implements IFileStorageService {
     }
 
     return storageProperties.getPublicUrl()
-        + "/storage/v1/object/public/"
+        + "/"
         + storageProperties.getBucketName()
         + "/"
         + uniqueFileName;

@@ -61,8 +61,8 @@ storage:
     bucket-name: ${SUPABASE_BUCKET_NAME:drink-images}
     region: ${SUPABASE_REGION:ap-south-1}
     endpoint: ${SUPABASE_ENDPOINT:https://xauxrvolraonrrxavkrt.storage.supabase.co/storage/v1/s3}
-    access-key: ${SUPABASE_ACCESS_KEY:be8ed083df7793f29d3103e433a0de1a}
-    secret-key: ${SUPABASE_SECRET_KEY:b3da973a131a6699b383e1a644a585a2bdf359f01c058258a2185237e4440569}
+    access-key: ${SUPABASE_ACCESS_KEY:afd8194c1a7b2477957e13f7c2d198f4}
+    secret-key: ${SUPABASE_SECRET_KEY:3df2c0f86e6c59340235f67df35c4913e63360e97b0a4f951ccb17991936930a}
 
 logging:
   level:

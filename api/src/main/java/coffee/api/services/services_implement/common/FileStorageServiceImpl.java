@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -180,7 +181,8 @@ public class FileStorageServiceImpl implements IFileStorageService {
     return S3Client.builder()
         .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
         .region(Region.of(storageProperties.getRegion()))
-        .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
+        .serviceConfiguration(
+            S3Configuration.builder().pathStyleAccessEnabled(true).build())
         .endpointOverride(java.net.URI.create(storageProperties.getEndpoint()))
         .build();
   }

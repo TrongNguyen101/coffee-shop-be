@@ -7,6 +7,7 @@ import coffee.api.exceptions.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 class FileStorageServiceImplTest {
 
@@ -55,8 +56,7 @@ class FileStorageServiceImplTest {
   @Test
   void storeDrinkImage_ThrowsInvalidRequestException_WhenFilenameHasNoDot_TC004() {
     MockMultipartFile noDotFile =
-        new MockMultipartFile(
-            "image", "sample_image_without_dot", "image/png", "sample".getBytes());
+        new MockMultipartFile("image", "sample_image_without_dot", "image/png", "sample".getBytes());
 
     InvalidRequestException exception =
         assertThrows(
@@ -117,8 +117,7 @@ class FileStorageServiceImplTest {
         new MockMultipartFile("image", "espresso.PNG", "image/png", "sample content".getBytes());
 
     RuntimeException exception =
-        assertThrows(
-            RuntimeException.class, () -> fileStorageService.storeDrinkImage(uppercaseExtFile));
+        assertThrows(RuntimeException.class, () -> fileStorageService.storeDrinkImage(uppercaseExtFile));
 
     assertNotNull(exception);
   }
@@ -139,8 +138,7 @@ class FileStorageServiceImplTest {
     String invalidUrl = "/invalid/path/to/image.png";
 
     InvalidRequestException exception =
-        assertThrows(
-            InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(invalidUrl));
+        assertThrows(InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(invalidUrl));
 
     assertTrue(exception.getMessage().contains("Could not delete old image file"));
   }
@@ -151,9 +149,7 @@ class FileStorageServiceImplTest {
         "https://aws-0-ap-south-1.pooler.supabase.com/storage/v1/object/public/drinks/image.png";
 
     InvalidRequestException exception =
-        assertThrows(
-            InvalidRequestException.class,
-            () -> fileStorageService.deleteDrinkImage(validUrlFormat));
+        assertThrows(InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(validUrlFormat));
 
     assertTrue(exception.getMessage().contains("Could not delete old image file"));
   }
@@ -176,8 +172,7 @@ class FileStorageServiceImplTest {
   void extractFileKeyFromUrl_ThrowsException_WhenUrlFormatIsInvalid_TC015() {
     String invalidUrl = "https://example.com/invalid/path/image.png";
 
-    assertThrows(
-        InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(invalidUrl));
+    assertThrows(InvalidRequestException.class, () -> fileStorageService.deleteDrinkImage(invalidUrl));
   }
 
   @Test
@@ -206,11 +201,8 @@ class FileStorageServiceImplTest {
 
   @Test
   void extractBaseFileName_ThrowsException_WhenNullFilename_TC018() {
-    assertThrows(
-        InvalidRequestException.class,
-        () ->
-            fileStorageService.storeDrinkImage(
-                new MockMultipartFile("image", (String) null, "image/png", "content".getBytes())));
+    assertThrows(InvalidRequestException.class, () -> fileStorageService.storeDrinkImage(
+        new MockMultipartFile("image", (String) null, "image/png", "content".getBytes())));
   }
 
   @Test
@@ -236,3 +228,4 @@ class FileStorageServiceImplTest {
     assertThrows(Exception.class, () -> method.invoke(fileStorageService, filename));
   }
 }
+

@@ -81,7 +81,7 @@ public class FileStorageServiceImpl implements IFileStorageService {
               file.getInputStream(), file.getSize()));
     }
 
-    return storageProperties.getEndpoint()
+    return storageProperties.getPublicUrl()
         + "/storage/v1/object/public/"
         + storageProperties.getBucketName()
         + "/"

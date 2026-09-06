@@ -11,7 +11,8 @@ public class SupabaseStorageProperties {
   private boolean enabled = false;
   private String bucketName;
   private String region;
-  private String endpoint;
+  private String endpoint; // S3 endpoint for uploads
+  private String publicUrl; // Public URL for serving images
   private String accessKey;
   private String secretKey;
 }

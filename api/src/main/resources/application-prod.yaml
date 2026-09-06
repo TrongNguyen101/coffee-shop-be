@@ -54,11 +54,12 @@ app:
 storage:
   supabase:
     enabled: true
-    bucket-name: ${SUPABASE_BUCKET_NAME:drink-images}
+    bucket-name: ${SUPABASE_BUCKET_NAME:drinks}
     region: ${SUPABASE_REGION:ap-south-1}
-    endpoint: ${SUPABASE_ENDPOINT:https://ldamaltfehzopoqfywpa.storage.supabase.co/storage/v1/s3}
-    access-key: ${SUPABASE_ACCESS_KEY:f502b28da5b2860cee5d0c5717ec5412}
-    secret-key: ${SUPABASE_SECRET_KEY:00143a63b282f066de789779df48b3e47630ed40e265fdb59a322d678cf33d82}
+    endpoint: ${SUPABASE_ENDPOINT:https://aws-0-ap-south-1.pooler.supabase.com}
+    public-url: ${SUPABASE_PUBLIC_URL:https://ldamaltfehzopoqfywpa.storage.supabase.co}
+    access-key: ${SUPABASE_ACCESS_KEY:9b4227f8658f5d0ef1ca5f77ae95767b}
+    secret-key: ${SUPABASE_SECRET_KEY:4b96d51cde5737384136360cb07e221359324f469f8e27a54ba6dc9cb911e0f4}
 
 logging:
   level:

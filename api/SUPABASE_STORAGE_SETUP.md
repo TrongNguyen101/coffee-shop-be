@@ -44,6 +44,7 @@ export DB_PASSWORD=postgres@1234
 export SUPABASE_BUCKET_NAME=drinks
 export SUPABASE_REGION=ap-south-1
 export SUPABASE_ENDPOINT=https://aws-0-ap-south-1.pooler.supabase.com
+export SUPABASE_PUBLIC_URL=https://xauxrvolraonrrxavkrt.storage.supabase.co
 export SUPABASE_ACCESS_KEY=<your_access_key_id>
 export SUPABASE_SECRET_KEY=<your_secret_access_key>
 ```
@@ -60,6 +61,7 @@ export DB_PASSWORD=<your_database_password>
 export SUPABASE_BUCKET_NAME=drinks
 export SUPABASE_REGION=ap-south-1
 export SUPABASE_ENDPOINT=https://aws-0-ap-south-1.pooler.supabase.com
+export SUPABASE_PUBLIC_URL=https://ldamaltfehzopoqfywpa.storage.supabase.co
 export SUPABASE_ACCESS_KEY=<your_access_key_id>
 export SUPABASE_SECRET_KEY=<your_secret_access_key>
 ```

@@ -56,8 +56,7 @@ public class CategoryDropdownServiceImplTest {
         .thenReturn(allCategories);
 
     // Act
-    List<CategoryDropdownResult> results =
-        categoryDropdownService.process("OWNER", ownerShopId);
+    List<CategoryDropdownResult> results = categoryDropdownService.process("OWNER", ownerShopId);
 
     // Assert
     assertNotNull(results);

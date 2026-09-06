@@ -23,12 +23,11 @@ public class RetrieveCategoryDropdownController {
   public ResponseEntity<CategoryDropdownResponse> retrieveCategory(
       @AuthenticationPrincipal CustomUserDetail customUserDetail) {
     List<CategoryDropdownResult> response =
-        categoryDropdownService.process(customUserDetail.getRoleName(), customUserDetail.getShopId());
+        categoryDropdownService.process(
+            customUserDetail.getRoleName(), customUserDetail.getShopId());
     return ResponseEntity.ok()
         .body(
             CategoryDropdownResponse.of(
-                ResponseCode.SUCCESS,
-                "Category dropdown retrieved successfully",
-                response));
+                ResponseCode.SUCCESS, "Category dropdown retrieved successfully", response));
   }
 }

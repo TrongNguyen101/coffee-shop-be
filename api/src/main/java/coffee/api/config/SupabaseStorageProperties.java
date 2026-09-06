@@ -15,4 +15,3 @@ public class SupabaseStorageProperties {
   private String accessKey;
   private String secretKey;
 }
-

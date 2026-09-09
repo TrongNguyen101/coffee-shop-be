@@ -22,6 +22,5 @@ public interface UpdateShopBranchMapper {
       @Param("shopId") UUID shopId,
       @Param("shopName") String shopName,
       @Param("address") String address,
-      @Param("phoneNumber") String phoneNumber,
-      @Param("isDeleted") Boolean isDeleted);
+      @Param("phoneNumber") String phoneNumber);
 }

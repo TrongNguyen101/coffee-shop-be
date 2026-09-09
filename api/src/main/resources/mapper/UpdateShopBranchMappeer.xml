@@ -48,17 +48,17 @@
     )
   </select>
 
-  <!-- Update shop branch -->
+  <!-- Update shop branch details -->
   <update id="updateShopBranch">
     UPDATE shops
     <set>
       shop_name = #{shopName},
       address = #{address},
       phone_number = #{phoneNumber},
-      is_deleted = #{isDeleted},
       updated_at = NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'
     </set>
     WHERE shop_id = #{shopId}
+    AND is_deleted = FALSE
   </update>
 
 </mapper>

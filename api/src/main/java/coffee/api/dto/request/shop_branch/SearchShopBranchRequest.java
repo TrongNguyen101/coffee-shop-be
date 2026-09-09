@@ -5,6 +5,7 @@ import coffee.api.enums.ValidationMessage;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.UUID;
 import lombok.Data;
 
@@ -20,6 +21,10 @@ public class SearchShopBranchRequest {
   @Max(value = 100, message = ValidationMessage.Msg.SIZE_MAX)
   private int size = 10;
 
+  @Size(max = 100, message = ValidationMessage.Msg.SIZE_MAX)
+  @Pattern(
+      regexp = "^\\s*$|^[\\p{L}0-9\\s.,/&'#-]+$",
+      message = ValidationMessage.Msg.SPECIAL_CHARACTERS)
   private String search;
 
   @Pattern(

@@ -60,9 +60,6 @@ public class EditShopBranchServiceImplTest {
     when(updateShopBranchMapper.checkShopExistedByAddressExceptCurrent(
             validRequest.getShopId(), validRequest.getAddress()))
         .thenReturn(false);
-    when(updateShopBranchMapper.checkShopExistedByPhoneExceptCurrent(
-            validRequest.getShopId(), validRequest.getPhoneNumber()))
-        .thenReturn(false);
 
     // Act
     assertDoesNotThrow(() -> editShopBranchService.process(validRequest));
@@ -74,9 +71,6 @@ public class EditShopBranchServiceImplTest {
     verify(updateShopBranchMapper, times(1))
         .checkShopExistedByAddressExceptCurrent(
             validRequest.getShopId(), validRequest.getAddress());
-    verify(updateShopBranchMapper, times(1))
-        .checkShopExistedByPhoneExceptCurrent(
-            validRequest.getShopId(), validRequest.getPhoneNumber());
     verify(updateShopBranchMapper, times(1))
         .updateShopBranch(
             eq(validRequest.getShopId()),
@@ -125,8 +119,6 @@ public class EditShopBranchServiceImplTest {
         .checkShopExistedByNameExceptCurrent(validRequest.getShopId(), validRequest.getShopName());
     verify(updateShopBranchMapper, never())
         .checkShopExistedByAddressExceptCurrent(any(UUID.class), anyString());
-    verify(updateShopBranchMapper, never())
-        .checkShopExistedByPhoneExceptCurrent(any(UUID.class), anyString());
     verify(updateShopBranchMapper, never()).updateShopBranch(any(), any(), any(), any());
   }
 
@@ -152,39 +144,6 @@ public class EditShopBranchServiceImplTest {
     verify(updateShopBranchMapper, times(1))
         .checkShopExistedByAddressExceptCurrent(
             validRequest.getShopId(), validRequest.getAddress());
-    verify(updateShopBranchMapper, never())
-        .checkShopExistedByPhoneExceptCurrent(any(UUID.class), anyString());
-    verify(updateShopBranchMapper, never()).updateShopBranch(any(), any(), any(), any());
-  }
-
-  @Test
-  void process_ThrowsUserExistException_WhenPhoneExistsInAnotherBranch_TC008() {
-    // Arrange
-    when(updateShopBranchMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(true);
-    when(updateShopBranchMapper.checkShopExistedByNameExceptCurrent(
-            validRequest.getShopId(), validRequest.getShopName()))
-        .thenReturn(false);
-    when(updateShopBranchMapper.checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress()))
-        .thenReturn(false);
-    when(updateShopBranchMapper.checkShopExistedByPhoneExceptCurrent(
-            validRequest.getShopId(), validRequest.getPhoneNumber()))
-        .thenReturn(true);
-
-    // Act & Assert
-    UserExistException exception =
-        assertThrows(UserExistException.class, () -> editShopBranchService.process(validRequest));
-
-    assertEquals("Phone number is existed", exception.getMessage());
-    verify(updateShopBranchMapper, times(1)).checkShopExistedById(validRequest.getShopId());
-    verify(updateShopBranchMapper, times(1))
-        .checkShopExistedByNameExceptCurrent(validRequest.getShopId(), validRequest.getShopName());
-    verify(updateShopBranchMapper, times(1))
-        .checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress());
-    verify(updateShopBranchMapper, times(1))
-        .checkShopExistedByPhoneExceptCurrent(
-            validRequest.getShopId(), validRequest.getPhoneNumber());
     verify(updateShopBranchMapper, never()).updateShopBranch(any(), any(), any(), any());
   }
 
@@ -197,9 +156,6 @@ public class EditShopBranchServiceImplTest {
         .thenReturn(false);
     when(updateShopBranchMapper.checkShopExistedByAddressExceptCurrent(
             validRequest.getShopId(), validRequest.getAddress()))
-        .thenReturn(false);
-    when(updateShopBranchMapper.checkShopExistedByPhoneExceptCurrent(
-            validRequest.getShopId(), validRequest.getPhoneNumber()))
         .thenReturn(false);
 
     doThrow(new DataAccessException("Database update error") {})

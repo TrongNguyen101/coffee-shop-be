@@ -51,8 +51,6 @@ public class CreateShopBranchServiceImplTest {
         .thenReturn(false);
     when(createShopBranchMapper.checkShopExistedByAddress(validRequest.getAddress()))
         .thenReturn(false);
-    when(createShopBranchMapper.checkShopExistedByPhone(validRequest.getPhoneNumber()))
-        .thenReturn(false);
 
     // Act
     assertDoesNotThrow(() -> createShopBranchService.process(validRequest));
@@ -60,7 +58,6 @@ public class CreateShopBranchServiceImplTest {
     // Assert
     verify(createShopBranchMapper, times(1)).checkShopExistedByName(validRequest.getShopName());
     verify(createShopBranchMapper, times(1)).checkShopExistedByAddress(validRequest.getAddress());
-    verify(createShopBranchMapper, times(1)).checkShopExistedByPhone(validRequest.getPhoneNumber());
     verify(createShopBranchMapper, times(1))
         .createShopBranch(
             any(UUID.class),
@@ -83,7 +80,6 @@ public class CreateShopBranchServiceImplTest {
     assertEquals("Shop name is existed", exception.getMessage());
     verify(createShopBranchMapper, times(1)).checkShopExistedByName(validRequest.getShopName());
     verify(createShopBranchMapper, never()).checkShopExistedByAddress(anyString());
-    verify(createShopBranchMapper, never()).checkShopExistedByPhone(anyString());
     verify(createShopBranchMapper, never()).createShopBranch(any(), any(), any(), any(), any());
   }
 
@@ -102,28 +98,6 @@ public class CreateShopBranchServiceImplTest {
     assertEquals("Address is existed", exception.getMessage());
     verify(createShopBranchMapper, times(1)).checkShopExistedByName(validRequest.getShopName());
     verify(createShopBranchMapper, times(1)).checkShopExistedByAddress(validRequest.getAddress());
-    verify(createShopBranchMapper, never()).checkShopExistedByPhone(anyString());
-    verify(createShopBranchMapper, never()).createShopBranch(any(), any(), any(), any(), any());
-  }
-
-  @Test
-  void process_ThrowsUserExistException_WhenPhoneNumberExists_TC005() {
-    // Arrange
-    when(createShopBranchMapper.checkShopExistedByName(validRequest.getShopName()))
-        .thenReturn(false);
-    when(createShopBranchMapper.checkShopExistedByAddress(validRequest.getAddress()))
-        .thenReturn(false);
-    when(createShopBranchMapper.checkShopExistedByPhone(validRequest.getPhoneNumber()))
-        .thenReturn(true);
-
-    // Act & Assert
-    UserExistException exception =
-        assertThrows(UserExistException.class, () -> createShopBranchService.process(validRequest));
-
-    assertEquals("Phone number is existed", exception.getMessage());
-    verify(createShopBranchMapper, times(1)).checkShopExistedByName(validRequest.getShopName());
-    verify(createShopBranchMapper, times(1)).checkShopExistedByAddress(validRequest.getAddress());
-    verify(createShopBranchMapper, times(1)).checkShopExistedByPhone(validRequest.getPhoneNumber());
     verify(createShopBranchMapper, never()).createShopBranch(any(), any(), any(), any(), any());
   }
 
@@ -133,8 +107,6 @@ public class CreateShopBranchServiceImplTest {
     when(createShopBranchMapper.checkShopExistedByName(validRequest.getShopName()))
         .thenReturn(false);
     when(createShopBranchMapper.checkShopExistedByAddress(validRequest.getAddress()))
-        .thenReturn(false);
-    when(createShopBranchMapper.checkShopExistedByPhone(validRequest.getPhoneNumber()))
         .thenReturn(false);
 
     doThrow(new DataAccessException("Database insertion error") {})

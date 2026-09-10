@@ -29,10 +29,6 @@ public class CreateShopBranchServiceImpl implements ICreateShopBranchService {
     }
 
     String phoneNumber = request.getPhoneNumber().trim();
-    Boolean isPhoneExisted = createShopBranchMapper.checkShopExistedByPhone(phoneNumber);
-    if (Boolean.TRUE.equals(isPhoneExisted)) {
-      throw new UserExistException("Phone number is existed");
-    }
 
     UUID newShopId = UUID.randomUUID();
     Boolean isDeleted = false;

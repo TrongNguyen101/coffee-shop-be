@@ -24,16 +24,6 @@
     )
   </select>
 
-  <!-- Check phone shop -->
-  <select id="checkShopExistedByPhone" resultType="java.lang.Boolean">
-    SELECT EXISTS (
-    SELECT 1
-    FROM shops
-    WHERE phone_number = #{phoneNumber}
-    AND is_deleted = FALSE
-    )
-  </select>
-
   <!-- Add shop branch -->
   <insert id="createShopBranch">
     INSERT INTO shops (

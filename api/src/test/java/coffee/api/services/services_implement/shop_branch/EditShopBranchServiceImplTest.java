@@ -85,95 +85,6 @@ public class EditShopBranchServiceImplTest {
             eq(validRequest.getPhoneNumber()));
   }
 
-  @Test
-  void process_Success_WhenPhoneNumberIsNull_TC002() {
-    // Arrange
-    validRequest.setPhoneNumber(null);
-
-    when(updateShopBranchMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(true);
-    when(updateShopBranchMapper.checkShopExistedByNameExceptCurrent(
-            validRequest.getShopId(), validRequest.getShopName()))
-        .thenReturn(false);
-    when(updateShopBranchMapper.checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress()))
-        .thenReturn(false);
-
-    // Act
-    assertDoesNotThrow(() -> editShopBranchService.process(validRequest));
-
-    // Assert
-    verify(updateShopBranchMapper, times(1)).checkShopExistedById(validRequest.getShopId());
-    verify(updateShopBranchMapper, times(1))
-        .checkShopExistedByNameExceptCurrent(validRequest.getShopId(), validRequest.getShopName());
-    verify(updateShopBranchMapper, times(1))
-        .checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress());
-    verify(updateShopBranchMapper, never())
-        .checkShopExistedByPhoneExceptCurrent(any(UUID.class), anyString());
-    verify(updateShopBranchMapper, times(1))
-        .updateShopBranch(
-            eq(validRequest.getShopId()),
-            eq(validRequest.getShopName()),
-            eq(validRequest.getAddress()),
-            isNull());
-  }
-
-  @Test
-  void process_Success_WhenPhoneNumberIsBlank_TC003() {
-    // Arrange
-    validRequest.setPhoneNumber("   ");
-
-    when(updateShopBranchMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(true);
-    when(updateShopBranchMapper.checkShopExistedByNameExceptCurrent(
-            validRequest.getShopId(), validRequest.getShopName()))
-        .thenReturn(false);
-    when(updateShopBranchMapper.checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress()))
-        .thenReturn(false);
-
-    // Act
-    assertDoesNotThrow(() -> editShopBranchService.process(validRequest));
-
-    // Assert
-    verify(updateShopBranchMapper, times(1)).checkShopExistedById(validRequest.getShopId());
-    verify(updateShopBranchMapper, never())
-        .checkShopExistedByPhoneExceptCurrent(any(UUID.class), anyString());
-    verify(updateShopBranchMapper, times(1))
-        .updateShopBranch(
-            eq(validRequest.getShopId()),
-            eq(validRequest.getShopName()),
-            eq(validRequest.getAddress()),
-            isNull());
-  }
-
-  @Test
-  void process_Success_WhenPhoneNumberIsEmptyString_TC004() {
-    // Arrange
-    validRequest.setPhoneNumber("");
-
-    when(updateShopBranchMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(true);
-    when(updateShopBranchMapper.checkShopExistedByNameExceptCurrent(
-            validRequest.getShopId(), validRequest.getShopName()))
-        .thenReturn(false);
-    when(updateShopBranchMapper.checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress()))
-        .thenReturn(false);
-
-    // Act
-    assertDoesNotThrow(() -> editShopBranchService.process(validRequest));
-
-    // Assert
-    verify(updateShopBranchMapper, times(1)).checkShopExistedById(validRequest.getShopId());
-    verify(updateShopBranchMapper, never())
-        .checkShopExistedByPhoneExceptCurrent(any(UUID.class), anyString());
-    verify(updateShopBranchMapper, times(1))
-        .updateShopBranch(
-            eq(validRequest.getShopId()),
-            eq(validRequest.getShopName()),
-            eq(validRequest.getAddress()),
-            isNull());
-  }
-
   // =========================================================================
   // ABNORMAL / EXCEPTION CASES
   // =========================================================================
@@ -333,24 +244,27 @@ public class EditShopBranchServiceImplTest {
   }
 
   @Test
-  void process_ValidationSuccess_WhenPhoneNumberIsNull_TC012() {
+  void process_ValidationFails_WhenPhoneNumberIsNull_TC012() {
     validRequest.setPhoneNumber(null);
     Set<ConstraintViolation<EditShopBranchRequest>> violations = validator.validate(validRequest);
-    assertEquals(0, violations.size());
+    assertEquals(1, violations.size());
+    assertEquals(ValidationMessage.Msg.FIELD_REQUIRED, violations.iterator().next().getMessage());
   }
 
   @Test
-  void process_ValidationSuccess_WhenPhoneNumberIsEmptyString_TC013() {
+  void process_ValidationFails_WhenPhoneNumberIsEmptyString_TC013() {
     validRequest.setPhoneNumber("");
     Set<ConstraintViolation<EditShopBranchRequest>> violations = validator.validate(validRequest);
-    assertEquals(0, violations.size());
+    assertEquals(1, violations.size());
+    assertEquals(ValidationMessage.Msg.FIELD_REQUIRED, violations.iterator().next().getMessage());
   }
 
   @Test
-  void process_ValidationSuccess_WhenPhoneNumberIsWhitespace_TC014() {
+  void process_ValidationFails_WhenPhoneNumberIsWhitespace_TC014() {
     validRequest.setPhoneNumber("     ");
     Set<ConstraintViolation<EditShopBranchRequest>> violations = validator.validate(validRequest);
-    assertEquals(0, violations.size());
+    assertEquals(1, violations.size());
+    assertEquals(ValidationMessage.Msg.FIELD_REQUIRED, violations.iterator().next().getMessage());
   }
 
   @Test

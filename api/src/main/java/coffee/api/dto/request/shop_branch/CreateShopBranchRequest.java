@@ -19,6 +19,7 @@ public class CreateShopBranchRequest {
   @Pattern(regexp = "^[\\p{L}0-9\\s/.,#-]+$", message = ValidationMessage.Msg.SPECIAL_CHARACTERS)
   private String address;
 
+  @NotBlank(message = ValidationMessage.Msg.FIELD_REQUIRED)
   @Pattern(regexp = "^\\s*$|^[0-9]+$", message = ValidationMessage.Msg.SPECIAL_CHARACTERS)
   @Pattern(regexp = "^\\s*$|^0.*$", message = ValidationMessage.Msg.PHONE_NUMBER_INVALID)
   @Pattern(regexp = "^\\s*$|^.{10,11}$", message = ValidationMessage.Msg.PHONE_INVALID_LENGTH)

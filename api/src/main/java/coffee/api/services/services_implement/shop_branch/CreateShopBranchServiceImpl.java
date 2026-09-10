@@ -28,16 +28,10 @@ public class CreateShopBranchServiceImpl implements ICreateShopBranchService {
       throw new UserExistException("Address is existed");
     }
 
-    String phoneNumber =
-        (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty())
-            ? request.getPhoneNumber().trim()
-            : null;
-
-    if (phoneNumber != null) {
-      Boolean isPhoneExisted = createShopBranchMapper.checkShopExistedByPhone(phoneNumber);
-      if (Boolean.TRUE.equals(isPhoneExisted)) {
-        throw new UserExistException("Phone number is existed");
-      }
+    String phoneNumber = request.getPhoneNumber().trim();
+    Boolean isPhoneExisted = createShopBranchMapper.checkShopExistedByPhone(phoneNumber);
+    if (Boolean.TRUE.equals(isPhoneExisted)) {
+      throw new UserExistException("Phone number is existed");
     }
 
     UUID newShopId = UUID.randomUUID();

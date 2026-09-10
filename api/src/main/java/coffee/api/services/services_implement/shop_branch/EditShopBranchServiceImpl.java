@@ -43,18 +43,12 @@ public class EditShopBranchServiceImpl implements IEditShopBranchService {
       throw new UserExistException("Address is existed");
     }
 
-    // 4. Normalize optional phone number and verify uniqueness
-    String phoneNumber =
-        (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty())
-            ? request.getPhoneNumber().trim()
-            : null;
-
-    if (phoneNumber != null) {
-      Boolean isPhoneExisted =
-          updateShopBranchMapper.checkShopExistedByPhoneExceptCurrent(shopId, phoneNumber);
-      if (Boolean.TRUE.equals(isPhoneExisted)) {
-        throw new UserExistException("Phone number is existed");
-      }
+    // 4. Normalize phone number and verify uniqueness
+    String phoneNumber = request.getPhoneNumber().trim();
+    Boolean isPhoneExisted =
+        updateShopBranchMapper.checkShopExistedByPhoneExceptCurrent(shopId, phoneNumber);
+    if (Boolean.TRUE.equals(isPhoneExisted)) {
+      throw new UserExistException("Phone number is existed");
     }
 
     // 5. Update shop branch information

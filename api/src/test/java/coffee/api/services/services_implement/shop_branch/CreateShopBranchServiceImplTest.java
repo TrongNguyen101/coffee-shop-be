@@ -71,32 +71,6 @@ public class CreateShopBranchServiceImplTest {
   }
 
   @Test
-  void process_Success_WhenPhoneNumberIsNull_TC002() {
-    // Arrange
-    validRequest.setPhoneNumber(null);
-
-    when(createShopBranchMapper.checkShopExistedByName(validRequest.getShopName()))
-        .thenReturn(false);
-    when(createShopBranchMapper.checkShopExistedByAddress(validRequest.getAddress()))
-        .thenReturn(false);
-
-    // Act
-    assertDoesNotThrow(() -> createShopBranchService.process(validRequest));
-
-    // Assert
-    verify(createShopBranchMapper, times(1)).checkShopExistedByName(validRequest.getShopName());
-    verify(createShopBranchMapper, times(1)).checkShopExistedByAddress(validRequest.getAddress());
-    verify(createShopBranchMapper, never()).checkShopExistedByPhone(anyString());
-    verify(createShopBranchMapper, times(1))
-        .createShopBranch(
-            any(UUID.class),
-            eq(validRequest.getShopName()),
-            eq(validRequest.getAddress()),
-            isNull(),
-            eq(false));
-  }
-
-  @Test
   void process_ThrowsUserExistException_WhenShopNameExists_TC003() {
     // Arrange
     when(createShopBranchMapper.checkShopExistedByName(validRequest.getShopName()))
@@ -176,58 +150,6 @@ public class CreateShopBranchServiceImplTest {
     verify(createShopBranchMapper, times(1)).createShopBranch(any(), any(), any(), any(), any());
   }
 
-  @Test
-  void process_Success_WhenPhoneNumberIsBlank_TC007() {
-    // Arrange
-    validRequest.setPhoneNumber("   ");
-
-    when(createShopBranchMapper.checkShopExistedByName(validRequest.getShopName()))
-        .thenReturn(false);
-    when(createShopBranchMapper.checkShopExistedByAddress(validRequest.getAddress()))
-        .thenReturn(false);
-
-    // Act
-    assertDoesNotThrow(() -> createShopBranchService.process(validRequest));
-
-    // Assert
-    verify(createShopBranchMapper, times(1)).checkShopExistedByName(validRequest.getShopName());
-    verify(createShopBranchMapper, times(1)).checkShopExistedByAddress(validRequest.getAddress());
-    verify(createShopBranchMapper, never()).checkShopExistedByPhone(anyString());
-    verify(createShopBranchMapper, times(1))
-        .createShopBranch(
-            any(UUID.class),
-            eq(validRequest.getShopName()),
-            eq(validRequest.getAddress()),
-            isNull(),
-            eq(false));
-  }
-
-  @Test
-  void process_Success_WhenPhoneNumberIsEmptyString_TC008() {
-    // Arrange
-    validRequest.setPhoneNumber("");
-
-    when(createShopBranchMapper.checkShopExistedByName(validRequest.getShopName()))
-        .thenReturn(false);
-    when(createShopBranchMapper.checkShopExistedByAddress(validRequest.getAddress()))
-        .thenReturn(false);
-
-    // Act
-    assertDoesNotThrow(() -> createShopBranchService.process(validRequest));
-
-    // Assert
-    verify(createShopBranchMapper, times(1)).checkShopExistedByName(validRequest.getShopName());
-    verify(createShopBranchMapper, times(1)).checkShopExistedByAddress(validRequest.getAddress());
-    verify(createShopBranchMapper, never()).checkShopExistedByPhone(anyString());
-    verify(createShopBranchMapper, times(1))
-        .createShopBranch(
-            any(UUID.class),
-            eq(validRequest.getShopName()),
-            eq(validRequest.getAddress()),
-            isNull(),
-            eq(false));
-  }
-
   // =========================================================================
   // REQUEST VALIDATION - NORMAL CASES
   // =========================================================================
@@ -239,24 +161,27 @@ public class CreateShopBranchServiceImplTest {
   }
 
   @Test
-  void process_ValidationSuccess_WhenPhoneNumberIsNull_TC010() {
+  void process_ValidationFails_WhenPhoneNumberIsNull_TC010() {
     validRequest.setPhoneNumber(null);
     Set<ConstraintViolation<CreateShopBranchRequest>> violations = validator.validate(validRequest);
-    assertEquals(0, violations.size());
+    assertEquals(1, violations.size());
+    assertEquals(ValidationMessage.Msg.FIELD_REQUIRED, violations.iterator().next().getMessage());
   }
 
   @Test
-  void process_ValidationSuccess_WhenPhoneNumberIsEmptyString_TC011() {
+  void process_ValidationFails_WhenPhoneNumberIsEmptyString_TC011() {
     validRequest.setPhoneNumber("");
     Set<ConstraintViolation<CreateShopBranchRequest>> violations = validator.validate(validRequest);
-    assertEquals(0, violations.size());
+    assertEquals(1, violations.size());
+    assertEquals(ValidationMessage.Msg.FIELD_REQUIRED, violations.iterator().next().getMessage());
   }
 
   @Test
-  void process_ValidationSuccess_WhenPhoneNumberIsWhitespace_TC012() {
+  void process_ValidationFails_WhenPhoneNumberIsWhitespace_TC012() {
     validRequest.setPhoneNumber("     ");
     Set<ConstraintViolation<CreateShopBranchRequest>> violations = validator.validate(validRequest);
-    assertEquals(0, violations.size());
+    assertEquals(1, violations.size());
+    assertEquals(ValidationMessage.Msg.FIELD_REQUIRED, violations.iterator().next().getMessage());
   }
 
   @Test

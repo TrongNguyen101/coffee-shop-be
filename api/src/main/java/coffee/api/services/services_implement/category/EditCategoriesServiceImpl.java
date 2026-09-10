@@ -5,6 +5,7 @@ import coffee.api.dto.response.base_response.ErrorDetail;
 import coffee.api.enums.ResponseCode;
 import coffee.api.enums.Roles;
 import coffee.api.exceptions.DataNotFoundException;
+import coffee.api.exceptions.InvalidRequestException;
 import coffee.api.exceptions.InvalidRequestWithErrorDetailsException;
 import coffee.api.mapper.CommonMapper;
 import coffee.api.mapper.UpdateCategoryMapper;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EditCategoriesServiceImpl implements IEditCategoriesService {
+
   private final CommonMapper commonMapper;
   private final UpdateCategoryMapper updateCategoryMapper;
 
@@ -27,6 +29,7 @@ public class EditCategoriesServiceImpl implements IEditCategoriesService {
       String currentUserRoleName,
       UUID currentUserId,
       UUID currentUserShopId) {
+
     validateData(request, currentUserRoleName, currentUserId, currentUserShopId);
     updateCategoryMapper.updateCategory(request, currentUserRoleName, currentUserShopId);
   }
@@ -36,30 +39,39 @@ public class EditCategoriesServiceImpl implements IEditCategoriesService {
       String currentUserRoleName,
       UUID currentUserId,
       UUID currentUserShopId) {
-    List<ErrorDetail> errors = new ArrayList<>();
-    Boolean isCategoryExisted =
-        commonMapper.checkCategoryExisted(
-            request.getCategoryId(), currentUserRoleName, currentUserShopId);
 
-    if (!isCategoryExisted) {
-      throw new DataNotFoundException("Data not found", request.getCategoryId());
-    }
-
-    if (currentUserRoleName.equals(Roles.MANAGER.getValue())) {
+    // 1. Verify manager role belongs to the requested shop
+    if (Roles.MANAGER.getValue().equals(currentUserRoleName)) {
+      if (currentUserShopId == null) {
+        throw new InvalidRequestException("Manager is not assigned to any shop branch");
+      }
+      if (!currentUserShopId.equals(request.getShopId())) {
+        throw new InvalidRequestException("You do not have permission to access this shop branch");
+      }
       Boolean isShopIdIsExist = commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId);
-
-      if (!isShopIdIsExist) {
+      if (Boolean.FALSE.equals(isShopIdIsExist)) {
         throw new DataNotFoundException("Shop Id not found", currentUserShopId);
       }
     }
+
+    // 2. Verify category existence
+    Boolean isCategoryExisted =
+        commonMapper.checkCategoryExisted(
+            request.getCategoryId(), currentUserRoleName, currentUserShopId);
+    if (Boolean.FALSE.equals(isCategoryExisted)) {
+      throw new DataNotFoundException("Data not found", request.getCategoryId());
+    }
+
+    // 3. Verify duplicate category name
+    String trimmedCategoryName = request.getCategoryName().trim();
+    request.setCategoryName(trimmedCategoryName);
+
     Boolean isCategoryNameExisted =
         commonMapper.checkCategoryNameExisted(
-            request.getCategoryId(),
-            request.getCategoryName(),
-            currentUserRoleName,
-            currentUserShopId);
+            request.getCategoryId(), trimmedCategoryName, currentUserRoleName, currentUserShopId);
 
-    if (isCategoryNameExisted) {
+    List<ErrorDetail> errors = new ArrayList<>();
+    if (Boolean.TRUE.equals(isCategoryNameExisted)) {
       ErrorDetail error = new ErrorDetail();
       error.setErrorCode(ResponseCode.CONFLICT.getCode());
       error.setMessage("Category name already exists");

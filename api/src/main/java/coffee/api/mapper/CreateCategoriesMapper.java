@@ -7,6 +7,10 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface CreateCategoriesMapper {
+
+  Boolean checkCategoryExistedByName(
+      @Param("shopId") UUID shopId, @Param("categoryName") String categoryName);
+
   void createCategories(
       @Param("request") CreateCategoriesRequest request,
       @Param("currentUserRoleName") String currentUserRoleName,

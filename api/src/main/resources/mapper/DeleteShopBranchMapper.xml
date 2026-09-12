@@ -71,23 +71,6 @@
     AND is_deleted = FALSE
   </update>
 
-  <!-- Soft delete profiles of managers and staff tied to this shop -->
-  <update id="softDeleteStaffProfilesByShopId">
-    UPDATE profiles
-    SET
-    is_deleted = TRUE,
-    deleted_at = NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh',
-    updated_at = NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'
-    WHERE profile_id IN (
-    SELECT ps.profile_id
-    FROM profile_shops ps
-    INNER JOIN roles r ON ps.role_id = r.role_id
-    WHERE ps.shop_id = #{shopId}
-    AND r.role_name IN ('ROLE_MANAGER', 'ROLE_STAFF', 'MANAGER', 'STAFF')
-    )
-    AND is_deleted = FALSE
-  </update>
-
   <!-- Soft delete branch-staff association mappings -->
   <update id="softDeleteProfileShopsByShopId">
     UPDATE profile_shops

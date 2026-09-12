@@ -21,6 +21,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -86,22 +87,29 @@ public class DeleteShopBranchServiceImplTest {
     // Act
     assertDoesNotThrow(() -> deleteShopBranchService.process(validRequest));
 
-    // Assert
-    verify(deleteShopBranchMapper, times(1)).checkShopExistedById(validRequest.getShopId());
-    verify(deleteShopBranchMapper, times(1)).countActiveInvoicesByShopId(validRequest.getShopId());
-    verify(deleteShopBranchMapper, times(1))
+    // Assert:
+    InOrder inOrder = inOrder(deleteShopBranchMapper);
+    inOrder.verify(deleteShopBranchMapper, times(1)).checkShopExistedById(validRequest.getShopId());
+    inOrder
+        .verify(deleteShopBranchMapper, times(1))
+        .countActiveInvoicesByShopId(validRequest.getShopId());
+    inOrder
+        .verify(deleteShopBranchMapper, times(1))
         .softDeleteDrinkDetailsByShopId(validRequest.getShopId(), testUserId);
-    verify(deleteShopBranchMapper, times(1))
+    inOrder
+        .verify(deleteShopBranchMapper, times(1))
         .softDeleteDrinksByShopId(validRequest.getShopId(), testUserId);
-    verify(deleteShopBranchMapper, times(1))
+    inOrder
+        .verify(deleteShopBranchMapper, times(1))
         .softDeleteCategoriesByShopId(validRequest.getShopId(), testUserId);
-    verify(deleteShopBranchMapper, times(1))
+    inOrder
+        .verify(deleteShopBranchMapper, times(1))
         .softDeleteTablesByShopId(validRequest.getShopId(), testUserId);
-    verify(deleteShopBranchMapper, times(1))
-        .softDeleteStaffProfilesByShopId(validRequest.getShopId(), testUserId);
-    verify(deleteShopBranchMapper, times(1))
+    inOrder
+        .verify(deleteShopBranchMapper, times(1))
         .softDeleteProfileShopsByShopId(validRequest.getShopId(), testUserId);
-    verify(deleteShopBranchMapper, times(1))
+    inOrder
+        .verify(deleteShopBranchMapper, times(1))
         .softDeleteShopBranch(validRequest.getShopId(), testUserId);
   }
 
@@ -125,8 +133,6 @@ public class DeleteShopBranchServiceImplTest {
         .softDeleteCategoriesByShopId(validRequest.getShopId(), null);
     verify(deleteShopBranchMapper, times(1))
         .softDeleteTablesByShopId(validRequest.getShopId(), null);
-    verify(deleteShopBranchMapper, times(1))
-        .softDeleteStaffProfilesByShopId(validRequest.getShopId(), null);
     verify(deleteShopBranchMapper, times(1))
         .softDeleteProfileShopsByShopId(validRequest.getShopId(), null);
     verify(deleteShopBranchMapper, times(1)).softDeleteShopBranch(validRequest.getShopId(), null);
@@ -155,8 +161,6 @@ public class DeleteShopBranchServiceImplTest {
     verify(deleteShopBranchMapper, times(1))
         .softDeleteTablesByShopId(validRequest.getShopId(), null);
     verify(deleteShopBranchMapper, times(1))
-        .softDeleteStaffProfilesByShopId(validRequest.getShopId(), null);
-    verify(deleteShopBranchMapper, times(1))
         .softDeleteProfileShopsByShopId(validRequest.getShopId(), null);
     verify(deleteShopBranchMapper, times(1)).softDeleteShopBranch(validRequest.getShopId(), null);
   }
@@ -184,7 +188,6 @@ public class DeleteShopBranchServiceImplTest {
     verify(deleteShopBranchMapper, never()).softDeleteDrinksByShopId(any(), any());
     verify(deleteShopBranchMapper, never()).softDeleteCategoriesByShopId(any(), any());
     verify(deleteShopBranchMapper, never()).softDeleteTablesByShopId(any(), any());
-    verify(deleteShopBranchMapper, never()).softDeleteStaffProfilesByShopId(any(), any());
     verify(deleteShopBranchMapper, never()).softDeleteProfileShopsByShopId(any(), any());
     verify(deleteShopBranchMapper, never()).softDeleteShopBranch(any(), any());
   }
@@ -209,7 +212,6 @@ public class DeleteShopBranchServiceImplTest {
     verify(deleteShopBranchMapper, never()).softDeleteDrinksByShopId(any(), any());
     verify(deleteShopBranchMapper, never()).softDeleteCategoriesByShopId(any(), any());
     verify(deleteShopBranchMapper, never()).softDeleteTablesByShopId(any(), any());
-    verify(deleteShopBranchMapper, never()).softDeleteStaffProfilesByShopId(any(), any());
     verify(deleteShopBranchMapper, never()).softDeleteProfileShopsByShopId(any(), any());
     verify(deleteShopBranchMapper, never()).softDeleteShopBranch(any(), any());
   }

@@ -6,13 +6,10 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.util.UUID;
 import lombok.Data;
 
 @Data
 public class SearchShopBranchRequest {
-
-  private UUID shopId;
 
   @Min(value = 1, message = ValidationMessage.Msg.PAGE_MIN)
   private int page = 1;

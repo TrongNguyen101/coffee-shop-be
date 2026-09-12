@@ -47,13 +47,10 @@ public class DeleteShopBranchServiceImpl implements IDeleteShopBranchService {
     // 5. Cascade soft-delete dining tables
     deleteShopBranchMapper.softDeleteTablesByShopId(shopId, currentProfileId);
 
-    // 6. Cascade soft-delete associated managers and staff profiles
-    deleteShopBranchMapper.softDeleteStaffProfilesByShopId(shopId, currentProfileId);
-
-    // 7. Disassociate staff permissions from this shop
+    // 6. Disassociate staff permissions from this shop (do not delete staff profiles)
     deleteShopBranchMapper.softDeleteProfileShopsByShopId(shopId, currentProfileId);
 
-    // 8. Soft-delete the target shop branch record
+    // 7. Soft-delete the target shop branch record
     deleteShopBranchMapper.softDeleteShopBranch(shopId, currentProfileId);
   }
 

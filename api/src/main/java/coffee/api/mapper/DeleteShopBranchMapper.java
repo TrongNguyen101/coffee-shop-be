@@ -21,9 +21,6 @@ public interface DeleteShopBranchMapper {
 
   void softDeleteTablesByShopId(@Param("shopId") UUID shopId, @Param("deletedBy") UUID deletedBy);
 
-  void softDeleteStaffProfilesByShopId(
-      @Param("shopId") UUID shopId, @Param("deletedBy") UUID deletedBy);
-
   void softDeleteProfileShopsByShopId(
       @Param("shopId") UUID shopId, @Param("deletedBy") UUID deletedBy);
 

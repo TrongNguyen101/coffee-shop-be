@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class EditCategoriesServiceImpl implements IEditCategoriesService {
   private final UpdateCategoryMapper updateCategoryMapper;
 
   @Override
+  @Transactional(rollbackFor = Exception.class)
   public void process(
       EditCategoriesRequest request,
       String currentUserRoleName,
@@ -40,38 +42,44 @@ public class EditCategoriesServiceImpl implements IEditCategoriesService {
       UUID currentUserId,
       UUID currentUserShopId) {
 
-    // 1. Verify manager role belongs to the requested shop
+    // 1. Verify target shop input
+    if (request == null || request.getShopId() == null) {
+      throw new InvalidRequestException("Shop ID is required");
+    }
+
+    // 2. Verify target shop exists and is active (both OWNER & MANAGER)
+    boolean isShopExisted = commonMapper.checkShopExisted(request.getShopId());
+    if (!isShopExisted) {
+      throw new DataNotFoundException("Data not found", request.getShopId());
+    }
+
+    // 3. Verify manager has permission to access the target shop
     if (Roles.MANAGER.getValue().equals(currentUserRoleName)) {
-      if (currentUserShopId == null) {
-        throw new InvalidRequestException("Manager is not assigned to any shop branch");
-      }
-      if (!currentUserShopId.equals(request.getShopId())) {
+      boolean isShopMember = commonMapper.checkShopIdIsExisted(currentUserId, request.getShopId());
+      if (!isShopMember) {
         throw new InvalidRequestException("You do not have permission to access this shop branch");
-      }
-      Boolean isShopIdIsExist = commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId);
-      if (Boolean.FALSE.equals(isShopIdIsExist)) {
-        throw new DataNotFoundException("Shop Id not found", currentUserShopId);
       }
     }
 
-    // 2. Verify category existence
-    Boolean isCategoryExisted =
+    // 4. Verify category existence and role/shop access
+    boolean isCategoryExisted =
         commonMapper.checkCategoryExisted(
             request.getCategoryId(), currentUserRoleName, currentUserShopId);
-    if (Boolean.FALSE.equals(isCategoryExisted)) {
+    if (!isCategoryExisted) {
       throw new DataNotFoundException("Data not found", request.getCategoryId());
     }
 
-    // 3. Verify duplicate category name
-    String trimmedCategoryName = request.getCategoryName().trim();
+    // 5. Verify duplicate category name in the target shop
+    String trimmedCategoryName =
+        request.getCategoryName() != null ? request.getCategoryName().trim() : "";
     request.setCategoryName(trimmedCategoryName);
 
-    Boolean isCategoryNameExisted =
+    boolean isCategoryNameExisted =
         commonMapper.checkCategoryNameExisted(
-            request.getCategoryId(), trimmedCategoryName, currentUserRoleName, currentUserShopId);
+            request.getCategoryId(), trimmedCategoryName, request.getShopId());
 
     List<ErrorDetail> errors = new ArrayList<>();
-    if (Boolean.TRUE.equals(isCategoryNameExisted)) {
+    if (isCategoryNameExisted) {
       ErrorDetail error = new ErrorDetail();
       error.setErrorCode(ResponseCode.CONFLICT.getCode());
       error.setMessage("Category name already exists");

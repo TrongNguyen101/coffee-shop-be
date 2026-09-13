@@ -4,16 +4,6 @@
 
 <mapper namespace="coffee.api.mapper.CreateCategoriesMapper">
 
-  <select id="checkCategoryExistedByName" resultType="java.lang.Boolean">
-    SELECT EXISTS (
-    SELECT 1
-    FROM drink_categories
-    WHERE shop_id = #{shopId}
-    AND LOWER(category_name) = LOWER(#{categoryName})
-    AND is_deleted = false
-    )
-  </select>
-
   <insert id="createCategories">
     INSERT INTO drink_categories (
     drink_category_id,
@@ -26,24 +16,23 @@
     #{request.shopId},
     TRIM(#{request.categoryName}),
     false
-    <where>
-      <choose>
-        <!-- OWNER can create for any shop -->
-        <when test="currentUserRoleName == 'OWNER'">
-        
-        </when>
-
-        <!-- MANAGER can only create if the requested shopId matches their assigned shopId -->
-        <when test="currentUserRoleName == 'MANAGER'">
-          #{request.shopId} = #{currentUserShopId}
-        </when>
-
-        <!-- Other roles are blocked from inserting -->
-        <otherwise>
-          1 = 0
-        </otherwise>
-      </choose>
-    </where>
+    WHERE EXISTS (
+    SELECT 1
+    FROM shops s
+    WHERE s.shop_id = #{request.shopId}
+    AND s.deleted_at IS NULL
+    )
+    <choose>
+      <when test="currentUserRoleName == 'OWNER'">
+        <!-- OWNER can create for any active shop -->
+      </when>
+      <when test="currentUserRoleName == 'MANAGER'">
+        AND #{request.shopId} = #{currentUserShopId}
+      </when>
+      <otherwise>
+        AND 1 = 0
+      </otherwise>
+    </choose>
   </insert>
 
 </mapper>

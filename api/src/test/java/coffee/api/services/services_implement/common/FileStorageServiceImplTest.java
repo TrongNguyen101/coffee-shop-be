@@ -517,4 +517,42 @@ class FileStorageServiceImplTest {
     String result = (String) method.invoke(fileStorageService, dynamicUrl.toString());
     assertEquals("temp_image.png", result);
   }
+
+  @Test
+  void storeDrinkImage_CreatesDirectories_WhenUploadDirectoryDoesNotExist_TC032()
+      throws IOException {
+    cleanDirectory();
+    assertFalse(Files.exists(testUploadDir));
+
+    FileStorageServiceImpl localService = new FileStorageServiceImpl(null);
+    MockMultipartFile validFile =
+        new MockMultipartFile("image", "caramel.png", "image/png", "content".getBytes());
+
+    String result = localService.storeDrinkImage(validFile);
+
+    assertNotNull(result);
+    assertTrue(Files.exists(testUploadDir));
+    Path savedPath = Paths.get(result.substring(1));
+    assertTrue(Files.exists(savedPath));
+  }
+
+  @Test
+  void storeDrinkImage_SkipsDirectoryCreation_WhenUploadDirectoryAlreadyExists_TC033()
+      throws IOException {
+    Files.createDirectories(testUploadDir);
+    assertTrue(Files.exists(testUploadDir));
+
+    FileStorageServiceImpl localService = new FileStorageServiceImpl(null);
+    MockMultipartFile validFile =
+        new MockMultipartFile("image", "matcha.png", "image/png", "sample content".getBytes());
+
+    String result = localService.storeDrinkImage(validFile);
+
+    assertNotNull(result);
+    assertTrue(result.startsWith("/uploads/drinks/matcha_"));
+    assertTrue(result.endsWith(".png"));
+
+    Path savedPath = Paths.get(result.substring(1));
+    assertTrue(Files.exists(savedPath));
+  }
 }

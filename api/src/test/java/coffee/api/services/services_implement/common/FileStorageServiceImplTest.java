@@ -46,6 +46,8 @@ class FileStorageServiceImplTest {
     storageProperties.setBucketName("drinks");
     storageProperties.setRegion("ap-south-1");
     storageProperties.setEndpoint("https://aws-0-ap-south-1.pooler.supabase.com");
+    storageProperties.setPublicUrl(
+        "https://aws-0-ap-south-1.pooler.supabase.com/storage/v1/object/public");
     storageProperties.setAccessKey("test-access-key");
     storageProperties.setSecretKey("test-secret-key");
 

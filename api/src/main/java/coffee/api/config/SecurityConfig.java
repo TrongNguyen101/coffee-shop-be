@@ -68,29 +68,34 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    
+
     // Use allowedOriginPatterns when credentials are enabled or patterns are provided
-    if (corsProperties.isAllowCredentials() && corsProperties.getAllowedOriginPatterns() != null && !corsProperties.getAllowedOriginPatterns().isEmpty()) {
+    if (corsProperties.isAllowCredentials()
+        && corsProperties.getAllowedOriginPatterns() != null
+        && !corsProperties.getAllowedOriginPatterns().isEmpty()) {
       config.setAllowedOriginPatterns(corsProperties.getAllowedOriginPatterns());
-    } else if (corsProperties.getAllowedOrigins() != null && !corsProperties.getAllowedOrigins().isEmpty()) {
+    } else if (corsProperties.getAllowedOrigins() != null
+        && !corsProperties.getAllowedOrigins().isEmpty()) {
       config.setAllowedOrigins(corsProperties.getAllowedOrigins());
     } else {
       // Fallback to localhost for development
       config.setAllowedOrigins(List.of("http://localhost:5173"));
     }
-    
-    if (corsProperties.getAllowedMethods() != null && !corsProperties.getAllowedMethods().isEmpty()) {
+
+    if (corsProperties.getAllowedMethods() != null
+        && !corsProperties.getAllowedMethods().isEmpty()) {
       config.setAllowedMethods(corsProperties.getAllowedMethods());
     } else {
       config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
     }
-    
-    if (corsProperties.getAllowedHeaders() != null && !corsProperties.getAllowedHeaders().isEmpty()) {
+
+    if (corsProperties.getAllowedHeaders() != null
+        && !corsProperties.getAllowedHeaders().isEmpty()) {
       config.setAllowedHeaders(corsProperties.getAllowedHeaders());
     } else {
       config.setAllowedHeaders(List.of("*"));
     }
-    
+
     config.setAllowCredentials(corsProperties.isAllowCredentials());
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

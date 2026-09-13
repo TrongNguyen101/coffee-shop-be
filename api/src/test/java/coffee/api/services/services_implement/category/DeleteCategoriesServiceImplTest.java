@@ -1,13 +1,21 @@
 package coffee.api.services.services_implement.category;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import coffee.api.dto.request.category.DeleteCategoriesRequest;
 import coffee.api.enums.Roles;
+import coffee.api.enums.ValidationMessage;
 import coffee.api.exceptions.DataNotFoundException;
+import coffee.api.exceptions.InvalidRequestException;
 import coffee.api.mapper.CommonMapper;
 import coffee.api.mapper.DeleteCategoryMapper;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteCategoriesServiceImplTest {
@@ -25,81 +34,242 @@ public class DeleteCategoriesServiceImplTest {
 
   @InjectMocks private DeleteCategoriesServiceImpl deleteCategoriesService;
 
+  private Validator validator;
   private DeleteCategoriesRequest validRequest;
-  private UUID categoryId;
   private UUID currentUserShopId;
-  private String currentUserRoleName;
+  private UUID currentUserId;
+  private String managerRole;
+  private String ownerRole;
 
   @BeforeEach
   void setUp() {
-    categoryId = UUID.randomUUID();
+    try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+      validator = factory.getValidator();
+    }
+
     currentUserShopId = UUID.randomUUID();
-    currentUserRoleName = Roles.MANAGER.getValue();
+    currentUserId = UUID.randomUUID();
 
     validRequest = new DeleteCategoriesRequest();
-    validRequest.setCategoryId(categoryId);
+    validRequest.setCategoryId(UUID.randomUUID());
+
+    managerRole = Roles.MANAGER.getValue();
+    ownerRole = Roles.OWNER.getValue();
   }
 
+  // =========================================================================
+  // SERVICE PROCESS - NORMAL & BUSINESS CASES
+  // =========================================================================
+
   @Test
-  void process_Success_TC001() {
-    // Arrange
-    when(commonMapper.checkCategoryExisted(categoryId, currentUserRoleName, currentUserShopId))
+  void process_Success_WhenUserIsManagerWithActiveShop_TC001() {
+    when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
+    when(commonMapper.checkCategoryExisted(
+            validRequest.getCategoryId(), managerRole, currentUserShopId))
         .thenReturn(true);
 
-    // Using doNothing() for void mapper methods
-    doNothing()
-        .when(deleteCategoryMapper)
-        .deleteCategory(categoryId, currentUserRoleName, currentUserShopId);
-
-    // Act
     assertDoesNotThrow(
         () ->
-            deleteCategoriesService.process(validRequest, currentUserRoleName, currentUserShopId));
+            deleteCategoriesService.process(
+                validRequest, managerRole, currentUserShopId, currentUserId));
 
-    // Assert
+    verify(commonMapper, times(1)).checkShopIdIsExisted(currentUserId, currentUserShopId);
     verify(commonMapper, times(1))
-        .checkCategoryExisted(categoryId, currentUserRoleName, currentUserShopId);
+        .checkCategoryExisted(validRequest.getCategoryId(), managerRole, currentUserShopId);
+
     verify(deleteCategoryMapper, times(1))
-        .deleteCategory(categoryId, currentUserRoleName, currentUserShopId);
+        .softDeleteDrinkDetailsByCategory(
+            validRequest.getCategoryId(), managerRole, currentUserShopId, currentUserId);
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteDrinksByCategory(
+            validRequest.getCategoryId(), managerRole, currentUserShopId, currentUserId);
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteCategory(
+            validRequest.getCategoryId(), managerRole, currentUserShopId, currentUserId);
   }
 
   @Test
-  void process_ThrowsDataNotFoundException_WhenCategoryDoesNotExist_TC002() {
-    // Arrange
-    when(commonMapper.checkCategoryExisted(categoryId, currentUserRoleName, currentUserShopId))
+  void process_Success_WhenUserIsOwner_BypassesShopMembershipCheck_TC002() {
+    when(commonMapper.checkCategoryExisted(
+            validRequest.getCategoryId(), ownerRole, currentUserShopId))
+        .thenReturn(true);
+
+    assertDoesNotThrow(
+        () ->
+            deleteCategoriesService.process(
+                validRequest, ownerRole, currentUserShopId, currentUserId));
+
+    verify(commonMapper, never()).checkShopIdIsExisted(any(), any());
+    verify(commonMapper, times(1))
+        .checkCategoryExisted(validRequest.getCategoryId(), ownerRole, currentUserShopId);
+
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteDrinkDetailsByCategory(
+            validRequest.getCategoryId(), ownerRole, currentUserShopId, currentUserId);
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteDrinksByCategory(
+            validRequest.getCategoryId(), ownerRole, currentUserShopId, currentUserId);
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteCategory(
+            validRequest.getCategoryId(), ownerRole, currentUserShopId, currentUserId);
+  }
+
+  @Test
+  void process_Success_WhenUserRoleIsNotManager_TC003() {
+    String staffRole = Roles.STAFF.getValue();
+    when(commonMapper.checkCategoryExisted(
+            validRequest.getCategoryId(), staffRole, currentUserShopId))
+        .thenReturn(true);
+
+    assertDoesNotThrow(
+        () ->
+            deleteCategoriesService.process(
+                validRequest, staffRole, currentUserShopId, currentUserId));
+
+    verify(commonMapper, never()).checkShopIdIsExisted(any(), any());
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteDrinkDetailsByCategory(
+            validRequest.getCategoryId(), staffRole, currentUserShopId, currentUserId);
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteDrinksByCategory(
+            validRequest.getCategoryId(), staffRole, currentUserShopId, currentUserId);
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteCategory(
+            validRequest.getCategoryId(), staffRole, currentUserShopId, currentUserId);
+  }
+
+  // =========================================================================
+  // SERVICE PROCESS - ABNORMAL / EXCEPTION CASES
+  // =========================================================================
+
+  @Test
+  void process_ThrowsInvalidRequestException_WhenRequestIsNull_TC004() {
+    InvalidRequestException exception =
+        assertThrows(
+            InvalidRequestException.class,
+            () ->
+                deleteCategoriesService.process(
+                    null, managerRole, currentUserShopId, currentUserId));
+
+    assertEquals("Category ID is required", exception.getMessage());
+    verifyNoInteractions(commonMapper);
+    verifyNoInteractions(deleteCategoryMapper);
+  }
+
+  @Test
+  void process_ThrowsInvalidRequestException_WhenCategoryIdIsNull_TC005() {
+    validRequest.setCategoryId(null);
+
+    InvalidRequestException exception =
+        assertThrows(
+            InvalidRequestException.class,
+            () ->
+                deleteCategoriesService.process(
+                    validRequest, managerRole, currentUserShopId, currentUserId));
+
+    assertEquals("Category ID is required", exception.getMessage());
+    verifyNoInteractions(commonMapper);
+    verifyNoInteractions(deleteCategoryMapper);
+  }
+
+  @Test
+  void process_ThrowsInvalidRequestException_WhenManagerIsNotAssignedToAnyShop_TC006() {
+    InvalidRequestException exception =
+        assertThrows(
+            InvalidRequestException.class,
+            () -> deleteCategoriesService.process(validRequest, managerRole, null, currentUserId));
+
+    assertEquals("Manager is not assigned to any shop branch", exception.getMessage());
+
+    verify(commonMapper, never()).checkShopIdIsExisted(any(), any());
+    verify(commonMapper, never()).checkCategoryExisted(any(), any(), any());
+    verifyNoInteractions(deleteCategoryMapper);
+  }
+
+  @Test
+  void process_ThrowsInvalidRequestException_WhenManagerShopMembershipInactiveOrDeleted_TC007() {
+    when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(false);
+
+    InvalidRequestException exception =
+        assertThrows(
+            InvalidRequestException.class,
+            () ->
+                deleteCategoriesService.process(
+                    validRequest, managerRole, currentUserShopId, currentUserId));
+
+    assertEquals("You do not have permission to access this shop branch", exception.getMessage());
+
+    verify(commonMapper, times(1)).checkShopIdIsExisted(currentUserId, currentUserShopId);
+    verify(commonMapper, never()).checkCategoryExisted(any(), any(), any());
+    verifyNoInteractions(deleteCategoryMapper);
+  }
+
+  @Test
+  void process_ThrowsDataNotFoundException_WhenCategoryDoesNotExist_TC008() {
+    when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
+    when(commonMapper.checkCategoryExisted(
+            validRequest.getCategoryId(), managerRole, currentUserShopId))
         .thenReturn(false);
 
-    // Act & Assert
     DataNotFoundException exception =
         assertThrows(
             DataNotFoundException.class,
             () ->
                 deleteCategoriesService.process(
-                    validRequest, currentUserRoleName, currentUserShopId));
+                    validRequest, managerRole, currentUserShopId, currentUserId));
 
     assertEquals("Data not found", exception.getMessage());
+    assertEquals(validRequest.getCategoryId(), exception.getId());
 
+    verify(commonMapper, times(1)).checkShopIdIsExisted(currentUserId, currentUserShopId);
     verify(commonMapper, times(1))
-        .checkCategoryExisted(categoryId, currentUserRoleName, currentUserShopId);
-    verify(deleteCategoryMapper, never()).deleteCategory(any(), any(), any());
+        .checkCategoryExisted(validRequest.getCategoryId(), managerRole, currentUserShopId);
+    verifyNoInteractions(deleteCategoryMapper);
   }
 
   @Test
-  void process_Success_WhenUserIsOwner_TC003() {
-    // Arrange
-    String ownerRole = Roles.OWNER.getValue();
-
-    when(commonMapper.checkCategoryExisted(categoryId, ownerRole, currentUserShopId))
+  void process_ThrowsDataAccessException_WhenCascadeDeleteFails_TC009() {
+    when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
+    when(commonMapper.checkCategoryExisted(
+            validRequest.getCategoryId(), managerRole, currentUserShopId))
         .thenReturn(true);
 
-    doNothing().when(deleteCategoryMapper).deleteCategory(categoryId, ownerRole, currentUserShopId);
+    doThrow(new DataAccessException("Database timeout during cascade deletion") {})
+        .when(deleteCategoryMapper)
+        .softDeleteDrinkDetailsByCategory(any(), any(), any(), any());
 
-    // Act
-    assertDoesNotThrow(
-        () -> deleteCategoriesService.process(validRequest, ownerRole, currentUserShopId));
+    DataAccessException exception =
+        assertThrows(
+            DataAccessException.class,
+            () ->
+                deleteCategoriesService.process(
+                    validRequest, managerRole, currentUserShopId, currentUserId));
 
-    // Assert
-    verify(commonMapper, times(1)).checkCategoryExisted(categoryId, ownerRole, currentUserShopId);
-    verify(deleteCategoryMapper, times(1)).deleteCategory(categoryId, ownerRole, currentUserShopId);
+    assertEquals("Database timeout during cascade deletion", exception.getMessage());
+
+    verify(deleteCategoryMapper, times(1))
+        .softDeleteDrinkDetailsByCategory(
+            validRequest.getCategoryId(), managerRole, currentUserShopId, currentUserId);
+    verify(deleteCategoryMapper, never()).softDeleteDrinksByCategory(any(), any(), any(), any());
+    verify(deleteCategoryMapper, never()).softDeleteCategory(any(), any(), any(), any());
+  }
+
+  // =========================================================================
+  // REQUEST BEAN VALIDATION
+  // =========================================================================
+
+  @Test
+  void requestValidation_Success_WhenCategoryIdIsValid_TC010() {
+    Set<ConstraintViolation<DeleteCategoriesRequest>> violations = validator.validate(validRequest);
+    assertEquals(0, violations.size());
+  }
+
+  @Test
+  void requestValidation_Fails_WhenCategoryIdIsNull_TC011() {
+    validRequest.setCategoryId(null);
+    Set<ConstraintViolation<DeleteCategoriesRequest>> violations = validator.validate(validRequest);
+
+    assertEquals(1, violations.size());
+    assertEquals(ValidationMessage.Msg.FIELD_REQUIRED, violations.iterator().next().getMessage());
   }
 }

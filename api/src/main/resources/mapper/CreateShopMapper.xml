@@ -4,7 +4,7 @@
 
 <mapper namespace="coffee.api.mapper.CreateShopMapper">
 
-  <!-- Check name shop -->
+  <!-- Check shop existence by name -->
   <select id="checkShopExistedByName" resultType="java.lang.Boolean">
     SELECT EXISTS (
     SELECT 1
@@ -14,7 +14,7 @@
     )
   </select>
 
-  <!-- Check address shop -->
+  <!-- Check shop existence by address -->
   <select id="checkShopExistedByAddress" resultType="java.lang.Boolean">
     SELECT EXISTS (
     SELECT 1
@@ -24,7 +24,7 @@
     )
   </select>
 
-  <!-- Add shop -->
+  <!-- Create new shop record -->
   <insert id="createShop">
     INSERT INTO shops (
     shop_id,

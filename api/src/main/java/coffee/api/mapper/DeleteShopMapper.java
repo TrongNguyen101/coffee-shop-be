@@ -11,6 +11,8 @@ public interface DeleteShopMapper {
 
   int countActiveInvoicesByShopId(@Param("shopId") UUID shopId);
 
+  int countActiveStaffByShopId(@Param("shopId") UUID shopId);
+
   void softDeleteDrinkDetailsByShopId(
       @Param("shopId") UUID shopId, @Param("deletedBy") UUID deletedBy);
 

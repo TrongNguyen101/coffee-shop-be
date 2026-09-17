@@ -32,6 +32,7 @@ public class EditShopServiceImplTest {
 
   private Validator validator;
   private EditShopRequest validRequest;
+  private UUID shopId;
 
   @BeforeEach
   void setUp() {
@@ -39,8 +40,9 @@ public class EditShopServiceImplTest {
       validator = factory.getValidator();
     }
 
+    shopId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
     validRequest = new EditShopRequest();
-    validRequest.setShopId(UUID.fromString("22222222-2222-2222-2222-222222222222"));
     validRequest.setShopName("Coffee Shop - Chi nhánh 1");
     validRequest.setAddress("123 Đường 3/2, Quận Ninh Kiều, Cần Thơ");
     validRequest.setPhoneNumber("02923888999");
@@ -53,27 +55,24 @@ public class EditShopServiceImplTest {
   @Test
   void process_Success_TC001() {
     // Arrange
-    when(updateShopMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(true);
-    when(updateShopMapper.checkShopExistedByNameExceptCurrent(
-            validRequest.getShopId(), validRequest.getShopName()))
+    when(updateShopMapper.checkShopExistedById(shopId)).thenReturn(true);
+    when(updateShopMapper.checkShopExistedByNameExceptCurrent(shopId, validRequest.getShopName()))
         .thenReturn(false);
-    when(updateShopMapper.checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress()))
+    when(updateShopMapper.checkShopExistedByAddressExceptCurrent(shopId, validRequest.getAddress()))
         .thenReturn(false);
 
     // Act
-    assertDoesNotThrow(() -> editShopBranchService.process(validRequest));
+    assertDoesNotThrow(() -> editShopBranchService.process(shopId, validRequest));
 
     // Assert
-    verify(updateShopMapper, times(1)).checkShopExistedById(validRequest.getShopId());
+    verify(updateShopMapper, times(1)).checkShopExistedById(shopId);
     verify(updateShopMapper, times(1))
-        .checkShopExistedByNameExceptCurrent(validRequest.getShopId(), validRequest.getShopName());
+        .checkShopExistedByNameExceptCurrent(shopId, validRequest.getShopName());
     verify(updateShopMapper, times(1))
-        .checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress());
+        .checkShopExistedByAddressExceptCurrent(shopId, validRequest.getAddress());
     verify(updateShopMapper, times(1))
         .updateShop(
-            eq(validRequest.getShopId()),
+            eq(shopId),
             eq(validRequest.getShopName()),
             eq(validRequest.getAddress()),
             eq(validRequest.getPhoneNumber()));
@@ -86,16 +85,16 @@ public class EditShopServiceImplTest {
   @Test
   void process_ThrowsDataNotFoundException_WhenShopDoesNotExist_TC005() {
     // Arrange
-    when(updateShopMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(false);
+    when(updateShopMapper.checkShopExistedById(shopId)).thenReturn(false);
 
     // Act & Assert
     DataNotFoundException exception =
         assertThrows(
-            DataNotFoundException.class, () -> editShopBranchService.process(validRequest));
+            DataNotFoundException.class, () -> editShopBranchService.process(shopId, validRequest));
 
     assertEquals("Data not found", exception.getMessage());
-    assertEquals(validRequest.getShopId(), exception.getId());
-    verify(updateShopMapper, times(1)).checkShopExistedById(validRequest.getShopId());
+    assertEquals(shopId, exception.getId());
+    verify(updateShopMapper, times(1)).checkShopExistedById(shopId);
     verify(updateShopMapper, never())
         .checkShopExistedByNameExceptCurrent(any(UUID.class), anyString());
     verify(updateShopMapper, never()).updateShop(any(), any(), any(), any());
@@ -104,19 +103,19 @@ public class EditShopServiceImplTest {
   @Test
   void process_ThrowsUserExistException_WhenShopNameExistsInAnotherBranch_TC006() {
     // Arrange
-    when(updateShopMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(true);
-    when(updateShopMapper.checkShopExistedByNameExceptCurrent(
-            validRequest.getShopId(), validRequest.getShopName()))
+    when(updateShopMapper.checkShopExistedById(shopId)).thenReturn(true);
+    when(updateShopMapper.checkShopExistedByNameExceptCurrent(shopId, validRequest.getShopName()))
         .thenReturn(true);
 
     // Act & Assert
     UserExistException exception =
-        assertThrows(UserExistException.class, () -> editShopBranchService.process(validRequest));
+        assertThrows(
+            UserExistException.class, () -> editShopBranchService.process(shopId, validRequest));
 
     assertEquals("Shop name is existed", exception.getMessage());
-    verify(updateShopMapper, times(1)).checkShopExistedById(validRequest.getShopId());
+    verify(updateShopMapper, times(1)).checkShopExistedById(shopId);
     verify(updateShopMapper, times(1))
-        .checkShopExistedByNameExceptCurrent(validRequest.getShopId(), validRequest.getShopName());
+        .checkShopExistedByNameExceptCurrent(shopId, validRequest.getShopName());
     verify(updateShopMapper, never())
         .checkShopExistedByAddressExceptCurrent(any(UUID.class), anyString());
     verify(updateShopMapper, never()).updateShop(any(), any(), any(), any());
@@ -125,37 +124,33 @@ public class EditShopServiceImplTest {
   @Test
   void process_ThrowsUserExistException_WhenAddressExistsInAnotherBranch_TC007() {
     // Arrange
-    when(updateShopMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(true);
-    when(updateShopMapper.checkShopExistedByNameExceptCurrent(
-            validRequest.getShopId(), validRequest.getShopName()))
+    when(updateShopMapper.checkShopExistedById(shopId)).thenReturn(true);
+    when(updateShopMapper.checkShopExistedByNameExceptCurrent(shopId, validRequest.getShopName()))
         .thenReturn(false);
-    when(updateShopMapper.checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress()))
+    when(updateShopMapper.checkShopExistedByAddressExceptCurrent(shopId, validRequest.getAddress()))
         .thenReturn(true);
 
     // Act & Assert
     UserExistException exception =
-        assertThrows(UserExistException.class, () -> editShopBranchService.process(validRequest));
+        assertThrows(
+            UserExistException.class, () -> editShopBranchService.process(shopId, validRequest));
 
     assertEquals("Address is existed", exception.getMessage());
-    verify(updateShopMapper, times(1)).checkShopExistedById(validRequest.getShopId());
+    verify(updateShopMapper, times(1)).checkShopExistedById(shopId);
     verify(updateShopMapper, times(1))
-        .checkShopExistedByNameExceptCurrent(validRequest.getShopId(), validRequest.getShopName());
+        .checkShopExistedByNameExceptCurrent(shopId, validRequest.getShopName());
     verify(updateShopMapper, times(1))
-        .checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress());
+        .checkShopExistedByAddressExceptCurrent(shopId, validRequest.getAddress());
     verify(updateShopMapper, never()).updateShop(any(), any(), any(), any());
   }
 
   @Test
   void process_ThrowsDataAccessException_WhenDatabaseFails_TC009() {
     // Arrange
-    when(updateShopMapper.checkShopExistedById(validRequest.getShopId())).thenReturn(true);
-    when(updateShopMapper.checkShopExistedByNameExceptCurrent(
-            validRequest.getShopId(), validRequest.getShopName()))
+    when(updateShopMapper.checkShopExistedById(shopId)).thenReturn(true);
+    when(updateShopMapper.checkShopExistedByNameExceptCurrent(shopId, validRequest.getShopName()))
         .thenReturn(false);
-    when(updateShopMapper.checkShopExistedByAddressExceptCurrent(
-            validRequest.getShopId(), validRequest.getAddress()))
+    when(updateShopMapper.checkShopExistedByAddressExceptCurrent(shopId, validRequest.getAddress()))
         .thenReturn(false);
 
     doThrow(new DataAccessException("Database update error") {})
@@ -164,12 +159,13 @@ public class EditShopServiceImplTest {
 
     // Act & Assert
     DataAccessException exception =
-        assertThrows(DataAccessException.class, () -> editShopBranchService.process(validRequest));
+        assertThrows(
+            DataAccessException.class, () -> editShopBranchService.process(shopId, validRequest));
 
     assertEquals("Database update error", exception.getMessage());
     verify(updateShopMapper, times(1))
         .updateShop(
-            eq(validRequest.getShopId()),
+            eq(shopId),
             eq(validRequest.getShopName()),
             eq(validRequest.getAddress()),
             eq(validRequest.getPhoneNumber()));
@@ -183,7 +179,8 @@ public class EditShopServiceImplTest {
 
     // Act & Assert
     RuntimeException exception =
-        assertThrows(RuntimeException.class, () -> editShopBranchService.process(validRequest));
+        assertThrows(
+            RuntimeException.class, () -> editShopBranchService.process(shopId, validRequest));
 
     assertEquals("Database connection timeout", exception.getMessage());
     verify(updateShopMapper, never()).updateShop(any(), any(), any(), any());
@@ -238,19 +235,6 @@ public class EditShopServiceImplTest {
   }
 
   // =========================================================================
-  // REQUEST VALIDATION - ABNORMAL CASES: SHOP ID
-  // =========================================================================
-
-  @Test
-  void process_ValidationFails_WhenShopIdIsNull_TC017() {
-    validRequest.setShopId(null);
-    Set<ConstraintViolation<EditShopRequest>> violations = validator.validate(validRequest);
-
-    assertEquals(1, violations.size());
-    assertEquals(ValidationMessage.Msg.FIELD_REQUIRED, violations.iterator().next().getMessage());
-  }
-
-  // =========================================================================
   // REQUEST VALIDATION - ABNORMAL CASES: SHOP NAME
   // =========================================================================
 
@@ -279,6 +263,15 @@ public class EditShopServiceImplTest {
 
     assertEquals(1, violations.size());
     assertEquals(ValidationMessage.Msg.SIZE_MAX, violations.iterator().next().getMessage());
+  }
+
+  @Test
+  void process_ValidationSuccess_WhenShopNameHas100Characters_TC020A() {
+    validRequest.setShopName("A".repeat(100));
+
+    Set<ConstraintViolation<EditShopRequest>> violations = validator.validate(validRequest);
+
+    assertTrue(violations.isEmpty());
   }
 
   @Test
@@ -320,6 +313,15 @@ public class EditShopServiceImplTest {
 
     assertEquals(1, violations.size());
     assertEquals(ValidationMessage.Msg.SIZE_MAX, violations.iterator().next().getMessage());
+  }
+
+  @Test
+  void process_ValidationSuccess_WhenAddressHas255Characters_TC024A() {
+    validRequest.setAddress("A".repeat(255));
+
+    Set<ConstraintViolation<EditShopRequest>> violations = validator.validate(validRequest);
+
+    assertTrue(violations.isEmpty());
   }
 
   @Test
@@ -374,5 +376,35 @@ public class EditShopServiceImplTest {
     assertEquals(1, violations.size());
     assertEquals(
         ValidationMessage.Msg.PHONE_INVALID_LENGTH, violations.iterator().next().getMessage());
+  }
+
+  @Test
+  void process_ThrowsDataNotFoundException_WhenExistenceCheckReturnsNull_TC030() {
+    when(updateShopMapper.checkShopExistedById(shopId)).thenReturn(null);
+
+    assertThrows(
+        DataNotFoundException.class, () -> editShopBranchService.process(shopId, validRequest));
+
+    verify(updateShopMapper, never())
+        .checkShopExistedByNameExceptCurrent(any(UUID.class), anyString());
+    verify(updateShopMapper, never()).updateShop(any(), any(), any(), any());
+  }
+
+  @Test
+  void process_Success_WhenDuplicateChecksReturnNull_TC031() {
+    when(updateShopMapper.checkShopExistedById(shopId)).thenReturn(true);
+    when(updateShopMapper.checkShopExistedByNameExceptCurrent(shopId, validRequest.getShopName()))
+        .thenReturn(null);
+    when(updateShopMapper.checkShopExistedByAddressExceptCurrent(shopId, validRequest.getAddress()))
+        .thenReturn(null);
+
+    assertDoesNotThrow(() -> editShopBranchService.process(shopId, validRequest));
+
+    verify(updateShopMapper)
+        .updateShop(
+            shopId,
+            validRequest.getShopName(),
+            validRequest.getAddress(),
+            validRequest.getPhoneNumber());
   }
 }

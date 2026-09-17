@@ -32,11 +32,11 @@ public class GetShopServiceImplTest {
 
   @Mock private GetShopMapper getShopMapper;
 
-  @InjectMocks private GetShopServiceImpl getShopBranchService;
+  @InjectMocks private GetShopServiceImpl getShopService;
 
   private Validator validator;
   private SearchShopRequest validRequest;
-  private ShopResult sampleShopBranchResult;
+  private ShopResult sampleShopResult;
   private UUID currentUserId;
   private String currentUserRoleName;
 
@@ -56,14 +56,14 @@ public class GetShopServiceImplTest {
     validRequest.setSortBy("createdAt");
     validRequest.setSortDirection(SortDirection.DESC);
 
-    sampleShopBranchResult = new ShopResult();
-    sampleShopBranchResult.setShopId(UUID.fromString("22222222-2222-2222-2222-222222222222"));
-    sampleShopBranchResult.setShopName("Coffee Central Branch");
-    sampleShopBranchResult.setAddress("123 Le Loi, District 1, HCMC");
-    sampleShopBranchResult.setPhoneNumber("0901234567");
-    sampleShopBranchResult.setCreatedAt(LocalDateTime.now());
-    sampleShopBranchResult.setUpdatedAt(LocalDateTime.now());
-    sampleShopBranchResult.setIsDeleted(false);
+    sampleShopResult = new ShopResult();
+    sampleShopResult.setShopId(UUID.fromString("22222222-2222-2222-2222-222222222222"));
+    sampleShopResult.setShopName("Coffee Central Branch");
+    sampleShopResult.setAddress("123 Le Loi, District 1, HCMC");
+    sampleShopResult.setPhoneNumber("0901234567");
+    sampleShopResult.setCreatedAt(LocalDateTime.now());
+    sampleShopResult.setUpdatedAt(LocalDateTime.now());
+    sampleShopResult.setIsDeleted(false);
   }
 
   // =========================================================================
@@ -80,7 +80,7 @@ public class GetShopServiceImplTest {
     int offset = validRequest.calcOffset();
     long totalElements = 1L;
 
-    List<ShopResult> expectedItems = Collections.singletonList(sampleShopBranchResult);
+    List<ShopResult> expectedItems = Collections.singletonList(sampleShopResult);
 
     when(getShopMapper.countShopsFiltered(search, currentUserRoleName, currentUserId))
         .thenReturn(totalElements);
@@ -91,18 +91,18 @@ public class GetShopServiceImplTest {
 
     // Act
     PageResponse<ShopResult> response =
-        getShopBranchService.process(validRequest, currentUserRoleName, currentUserId);
+        getShopService.process(validRequest, currentUserRoleName, currentUserId);
 
     // Assert
     assertNotNull(response);
-    assertEquals("Get shop branches successfully", response.getMessage());
+    assertEquals("Get shops successfully", response.getMessage());
     assertNotNull(response.getItems());
     assertEquals(1, response.getItems().size());
 
-    ShopResult branchResult = response.getItems().getFirst();
-    assertEquals("Coffee Central Branch", branchResult.getShopName());
-    assertEquals("123 Le Loi, District 1, HCMC", branchResult.getAddress());
-    assertEquals("0901234567", branchResult.getPhoneNumber());
+    ShopResult shopResult = response.getItems().getFirst();
+    assertEquals("Coffee Central Branch", shopResult.getShopName());
+    assertEquals("123 Le Loi, District 1, HCMC", shopResult.getAddress());
+    assertEquals("0901234567", shopResult.getPhoneNumber());
 
     // Pagination metadata assertions
     assertNotNull(response.getPagination());
@@ -137,7 +137,7 @@ public class GetShopServiceImplTest {
 
     // Act
     PageResponse<ShopResult> response =
-        getShopBranchService.process(validRequest, currentUserRoleName, currentUserId);
+        getShopService.process(validRequest, currentUserRoleName, currentUserId);
 
     // Assert
     assertNotNull(response);
@@ -172,11 +172,11 @@ public class GetShopServiceImplTest {
             eq(offset),
             eq(currentUserRoleName),
             eq(currentUserId)))
-        .thenReturn(Collections.singletonList(sampleShopBranchResult));
+        .thenReturn(Collections.singletonList(sampleShopResult));
 
     // Act
     PageResponse<ShopResult> response =
-        getShopBranchService.process(validRequest, currentUserRoleName, currentUserId);
+        getShopService.process(validRequest, currentUserRoleName, currentUserId);
 
     // Assert
     assertNotNull(response);
@@ -216,7 +216,7 @@ public class GetShopServiceImplTest {
 
     // Act
     PageResponse<ShopResult> response =
-        getShopBranchService.process(validRequest, currentUserRoleName, currentUserId);
+        getShopService.process(validRequest, currentUserRoleName, currentUserId);
 
     // Assert
     assertNotNull(response);
@@ -249,11 +249,11 @@ public class GetShopServiceImplTest {
             eq(offset),
             eq(currentUserRoleName),
             eq(currentUserId)))
-        .thenReturn(Collections.singletonList(sampleShopBranchResult));
+        .thenReturn(Collections.singletonList(sampleShopResult));
 
     // Act
     PageResponse<ShopResult> response =
-        getShopBranchService.process(validRequest, currentUserRoleName, currentUserId);
+        getShopService.process(validRequest, currentUserRoleName, currentUserId);
 
     // Assert
     assertNotNull(response);
@@ -270,18 +270,57 @@ public class GetShopServiceImplTest {
   }
 
   @Test
-  void process_Success_WhenRoleIsManager_TC006() {
+  void process_Success_WhenSortDirectionIsAsc_TC006() {
+    // Arrange
+    validRequest.setSortDirection(SortDirection.ASC);
+    String search = validRequest.trimmedSearch();
+    String sortBy = validRequest.getSortBy();
+    int size = validRequest.getSize();
+    int offset = validRequest.calcOffset();
+
+    when(getShopMapper.countShopsFiltered(any(), any(), any())).thenReturn(1L);
+
+    when(getShopMapper.getShopsFiltered(
+            eq(search),
+            eq(sortBy),
+            eq("ASC"),
+            eq(size),
+            eq(offset),
+            eq(currentUserRoleName),
+            eq(currentUserId)))
+        .thenReturn(Collections.singletonList(sampleShopResult));
+
+    // Act
+    PageResponse<ShopResult> response =
+        getShopService.process(validRequest, currentUserRoleName, currentUserId);
+
+    // Assert
+    assertNotNull(response);
+    assertEquals(1, response.getItems().size());
+    verify(getShopMapper, times(1))
+        .getShopsFiltered(
+            eq(search),
+            eq(sortBy),
+            eq("ASC"),
+            eq(size),
+            eq(offset),
+            eq(currentUserRoleName),
+            eq(currentUserId));
+  }
+
+  @Test
+  void process_Success_WhenRoleIsManager_TC007() {
     // Arrange
     String managerRole = "MANAGER";
     when(getShopMapper.countShopsFiltered(any(), eq(managerRole), eq(currentUserId)))
         .thenReturn(1L);
     when(getShopMapper.getShopsFiltered(
             any(), any(), any(), anyInt(), anyInt(), eq(managerRole), eq(currentUserId)))
-        .thenReturn(Collections.singletonList(sampleShopBranchResult));
+        .thenReturn(Collections.singletonList(sampleShopResult));
 
     // Act
     PageResponse<ShopResult> response =
-        getShopBranchService.process(validRequest, managerRole, currentUserId);
+        getShopService.process(validRequest, managerRole, currentUserId);
 
     // Assert
     assertNotNull(response);
@@ -289,12 +328,43 @@ public class GetShopServiceImplTest {
     verify(getShopMapper, times(1)).countShopsFiltered(any(), eq(managerRole), eq(currentUserId));
   }
 
+  @Test
+  void process_Success_WhenPaginationOnSecondPage_TC008() {
+    // Arrange
+    validRequest.setPage(2);
+    validRequest.setSize(5);
+    String search = validRequest.trimmedSearch();
+    String sortBy = validRequest.getSortBy();
+    String sortDirection = validRequest.getSortDirection().toString();
+    int size = 5;
+    int offset = 5; // (2 - 1) * 5
+    long totalElements = 12L;
+
+    when(getShopMapper.countShopsFiltered(search, currentUserRoleName, currentUserId))
+        .thenReturn(totalElements);
+
+    when(getShopMapper.getShopsFiltered(
+            search, sortBy, sortDirection, size, offset, currentUserRoleName, currentUserId))
+        .thenReturn(Collections.singletonList(sampleShopResult));
+
+    // Act
+    PageResponse<ShopResult> response =
+        getShopService.process(validRequest, currentUserRoleName, currentUserId);
+
+    // Assert
+    assertNotNull(response);
+    assertEquals(2, response.getPagination().getPage());
+    assertEquals(5, response.getPagination().getSize());
+    assertEquals(12L, response.getPagination().getTotalElements());
+    assertEquals(3, response.getPagination().getTotalPages()); // ceil(12 / 5) = 3
+  }
+
   // =========================================================================
   // ABNORMAL / DATABASE EXCEPTION CASES
   // =========================================================================
 
   @Test
-  void process_ThrowsDataAccessException_WhenCountQueryFails_TC007() {
+  void process_ThrowsDataAccessException_WhenCountQueryFails_TC009() {
     // Arrange
     when(getShopMapper.countShopsFiltered(any(), any(), any()))
         .thenThrow(new DataAccessException("Database connection timeout") {});
@@ -303,7 +373,7 @@ public class GetShopServiceImplTest {
     DataAccessException exception =
         assertThrows(
             DataAccessException.class,
-            () -> getShopBranchService.process(validRequest, currentUserRoleName, currentUserId));
+            () -> getShopService.process(validRequest, currentUserRoleName, currentUserId));
 
     assertEquals("Database connection timeout", exception.getMessage());
     verify(getShopMapper, never())
@@ -311,7 +381,7 @@ public class GetShopServiceImplTest {
   }
 
   @Test
-  void process_ThrowsDataAccessException_WhenSelectQueryFails_TC008() {
+  void process_ThrowsDataAccessException_WhenSelectQueryFails_TC010() {
     // Arrange
     when(getShopMapper.countShopsFiltered(any(), any(), any())).thenReturn(5L);
     when(getShopMapper.getShopsFiltered(any(), any(), any(), anyInt(), anyInt(), any(), any()))
@@ -321,7 +391,7 @@ public class GetShopServiceImplTest {
     DataAccessException exception =
         assertThrows(
             DataAccessException.class,
-            () -> getShopBranchService.process(validRequest, currentUserRoleName, currentUserId));
+            () -> getShopService.process(validRequest, currentUserRoleName, currentUserId));
 
     assertEquals("Syntax error in query execution", exception.getMessage());
   }
@@ -331,7 +401,7 @@ public class GetShopServiceImplTest {
   // =========================================================================
 
   @Test
-  void process_DtoHelpers_CalculationAndTrimmingCoverage_TC009() {
+  void process_DtoHelpers_CalculationAndTrimmingCoverage_TC011() {
     SearchShopRequest req = new SearchShopRequest();
     req.setPage(3);
     req.setSize(15);
@@ -362,27 +432,27 @@ public class GetShopServiceImplTest {
   // =========================================================================
 
   @Test
-  void process_ValidationSuccess_WhenRequestIsValid_TC010() {
+  void process_ValidationSuccess_WhenRequestIsValid_TC012() {
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
     assertTrue(violations.isEmpty());
   }
 
   @Test
-  void process_ValidationSuccess_WhenSearchIsNull_TC011() {
+  void process_ValidationSuccess_WhenSearchIsNull_TC013() {
     validRequest.setSearch(null);
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
     assertTrue(violations.isEmpty());
   }
 
   @Test
-  void process_ValidationSuccess_WhenSearchIsEmptyOrWhitespace_TC012() {
+  void process_ValidationSuccess_WhenSearchIsEmptyOrWhitespace_TC014() {
     validRequest.setSearch("   ");
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
     assertTrue(violations.isEmpty());
   }
 
   @Test
-  void process_ValidationFails_WhenPageIsLessThanOne_TC013() {
+  void process_ValidationFails_WhenPageIsLessThanOne_TC015() {
     validRequest.setPage(0);
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
 
@@ -391,7 +461,7 @@ public class GetShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenSizeIsLessThanOne_TC014() {
+  void process_ValidationFails_WhenSizeIsLessThanOne_TC016() {
     validRequest.setSize(0);
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
 
@@ -400,7 +470,7 @@ public class GetShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenSizeExceedsMax_TC015() {
+  void process_ValidationFails_WhenSizeExceedsMax_TC017() {
     validRequest.setSize(101);
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
 
@@ -409,7 +479,25 @@ public class GetShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenSearchExceeds100Characters_TC016() {
+  void process_ValidationSuccess_WhenSizeIsOne_TC017A() {
+    validRequest.setSize(1);
+
+    Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void process_ValidationSuccess_WhenSizeIs100_TC017B() {
+    validRequest.setSize(100);
+
+    Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void process_ValidationFails_WhenSearchExceeds100Characters_TC018() {
     validRequest.setSearch("A".repeat(101));
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
 
@@ -418,7 +506,16 @@ public class GetShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenSearchContainsProhibitedCharacters_TC017() {
+  void process_ValidationSuccess_WhenSearchHas100Characters_TC018A() {
+    validRequest.setSearch("A".repeat(100));
+
+    Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
+
+    assertTrue(violations.isEmpty());
+  }
+
+  @Test
+  void process_ValidationFails_WhenSearchContainsProhibitedCharacters_TC019() {
     validRequest.setSearch("SELECT * FROM shops; <script>");
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
 
@@ -428,7 +525,7 @@ public class GetShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenSortByIsInvalidColumn_TC018() {
+  void process_ValidationFails_WhenSortByIsInvalidColumn_TC020() {
     validRequest.setSortBy("passwordHash");
     Set<ConstraintViolation<SearchShopRequest>> violations = validator.validate(validRequest);
 

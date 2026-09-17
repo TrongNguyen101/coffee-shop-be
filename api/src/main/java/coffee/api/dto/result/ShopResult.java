@@ -10,6 +10,7 @@ public class ShopResult {
   private String shopName;
   private String address;
   private String phoneNumber;
+  private Integer activeStaffCount;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private Boolean isDeleted;

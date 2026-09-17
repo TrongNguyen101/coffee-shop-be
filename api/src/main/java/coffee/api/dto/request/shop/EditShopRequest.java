@@ -2,17 +2,12 @@ package coffee.api.dto.request.shop;
 
 import coffee.api.enums.ValidationMessage;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.util.UUID;
 import lombok.Data;
 
 @Data
 public class EditShopRequest {
-
-  @NotNull(message = ValidationMessage.Msg.FIELD_REQUIRED)
-  private UUID shopId;
 
   @NotBlank(message = ValidationMessage.Msg.FIELD_REQUIRED)
   @Size(max = 100, message = ValidationMessage.Msg.SIZE_MAX)

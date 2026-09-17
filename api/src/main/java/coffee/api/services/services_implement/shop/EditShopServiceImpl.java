@@ -18,8 +18,7 @@ public class EditShopServiceImpl implements IEditShopService {
 
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public void process(EditShopRequest request) {
-    UUID shopId = request.getShopId();
+  public void process(UUID shopId, EditShopRequest request) {
     String shopName = request.getShopName().trim();
     String address = request.getAddress().trim();
 

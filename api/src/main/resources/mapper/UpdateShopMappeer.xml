@@ -12,6 +12,7 @@
     FROM shops
     WHERE shop_id = #{shopId}
     AND is_deleted = FALSE
+    AND deleted_at IS NULL
     )
   </select>
 
@@ -23,6 +24,7 @@
     WHERE LOWER(TRIM(shop_name)) = LOWER(TRIM(#{shopName}))
     AND shop_id != #{shopId}
     AND is_deleted = FALSE
+    AND deleted_at IS NULL
     )
   </select>
 
@@ -34,6 +36,7 @@
     WHERE LOWER(TRIM(address)) = LOWER(TRIM(#{address}))
     AND shop_id != #{shopId}
     AND is_deleted = FALSE
+    AND deleted_at IS NULL
     )
   </select>
 
@@ -48,6 +51,7 @@
     </set>
     WHERE shop_id = #{shopId}
     AND is_deleted = FALSE
+    AND deleted_at IS NULL
   </update>
 
 </mapper>

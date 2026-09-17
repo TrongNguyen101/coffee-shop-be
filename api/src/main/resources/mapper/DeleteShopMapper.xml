@@ -12,6 +12,7 @@
     FROM shops
     WHERE shop_id = #{shopId}
     AND is_deleted = FALSE
+    AND deleted_at IS NULL
     )
   </select>
 
@@ -22,6 +23,15 @@
     WHERE shop_id = #{shopId}
     AND status = 0
     AND is_deleted = FALSE
+    AND deleted_at IS NULL
+  </select>
+
+  <!-- Count active staff members assigned to this shop -->
+  <select id="countActiveStaffByShopId" resultType="int">
+    SELECT COUNT(1)
+    FROM profile_shops
+    WHERE shop_id = #{shopId}
+    AND deleted_at IS NULL
   </select>
 
   <!-- Soft delete drink details (sizes, prices) belonging to drinks of this shop -->

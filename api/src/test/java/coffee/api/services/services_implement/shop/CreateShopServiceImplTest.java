@@ -160,25 +160,79 @@ public class CreateShopServiceImplTest {
     verify(createShopMapper, times(1)).createShop(any(), any(), any(), any(), any());
   }
 
+  @Test
+  void process_ThrowsInvalidRequestException_WhenUserIdIsNull_TC006() {
+    InvalidRequestException exception =
+        assertThrows(
+            InvalidRequestException.class,
+            () -> createShopService.process(validRequest, null, currentRoleName));
+
+    assertEquals("Only authenticated owners can create shops", exception.getMessage());
+    verifyNoInteractions(createShopMapper);
+  }
+
+  @Test
+  void process_ThrowsInvalidRequestException_WhenRoleIsNull_TC007() {
+    InvalidRequestException exception =
+        assertThrows(
+            InvalidRequestException.class,
+            () -> createShopService.process(validRequest, currentUserId, null));
+
+    assertEquals("Only authenticated owners can create shops", exception.getMessage());
+    verifyNoInteractions(createShopMapper);
+  }
+
+  @Test
+  void process_PropagatesDataAccessException_WhenNameCheckFails_TC008() {
+    doThrow(new DataAccessException("Database name check error") {})
+        .when(createShopMapper)
+        .checkShopExistedByName(validRequest.getShopName());
+
+    DataAccessException exception =
+        assertThrows(
+            DataAccessException.class,
+            () -> createShopService.process(validRequest, currentUserId, currentRoleName));
+
+    assertEquals("Database name check error", exception.getMessage());
+    verify(createShopMapper, never()).checkShopExistedByAddress(anyString());
+    verify(createShopMapper, never()).createShop(any(), any(), any(), any(), any());
+  }
+
+  @Test
+  void process_PropagatesDataAccessException_WhenAddressCheckFails_TC009() {
+    when(createShopMapper.checkShopExistedByName(validRequest.getShopName())).thenReturn(false);
+    doThrow(new DataAccessException("Database address check error") {})
+        .when(createShopMapper)
+        .checkShopExistedByAddress(validRequest.getAddress());
+
+    DataAccessException exception =
+        assertThrows(
+            DataAccessException.class,
+            () -> createShopService.process(validRequest, currentUserId, currentRoleName));
+
+    assertEquals("Database address check error", exception.getMessage());
+    verify(createShopMapper, never()).createShop(any(), any(), any(), any(), any());
+  }
+
   // =========================================================================
   // REQUEST BEAN VALIDATION - NORMAL CASES
   // =========================================================================
 
   @Test
-  void process_ValidationSuccess_WhenAllFieldsAreValid_TC006() {
+  void process_ValidationSuccess_WhenAllFieldsAreValid_TC010() {
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
     assertEquals(0, violations.size());
   }
 
   @Test
-  void process_ValidationSuccess_WhenPhoneNumberIs10Digits_TC007() {
+  void process_ValidationSuccess_WhenPhoneNumberIs10Digits_TC011() {
     validRequest.setPhoneNumber("0912345678");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
     assertEquals(0, violations.size());
   }
 
   @Test
-  void process_ValidationSuccess_WhenPhoneNumberIs11Digits_TC008() {
+  void process_ValidationSuccess_WhenPhoneNumberIs11Digits_TC012() {
     validRequest.setPhoneNumber("02923999111");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
     assertEquals(0, violations.size());
@@ -189,7 +243,7 @@ public class CreateShopServiceImplTest {
   // =========================================================================
 
   @Test
-  void process_ValidationFails_WhenPhoneNumberIsNull_TC009() {
+  void process_ValidationFails_WhenPhoneNumberIsNull_TC013() {
     validRequest.setPhoneNumber(null);
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
     assertEquals(1, violations.size());
@@ -197,7 +251,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenPhoneNumberIsEmptyString_TC010() {
+  void process_ValidationFails_WhenPhoneNumberIsEmptyString_TC014() {
     validRequest.setPhoneNumber("");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
     assertEquals(1, violations.size());
@@ -205,7 +259,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenPhoneNumberIsWhitespace_TC011() {
+  void process_ValidationFails_WhenPhoneNumberIsWhitespace_TC015() {
     validRequest.setPhoneNumber("     ");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
     assertEquals(1, violations.size());
@@ -213,7 +267,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenPhoneNumberContainsLettersOrSpecialChars_TC012() {
+  void process_ValidationFails_WhenPhoneNumberContainsLettersOrSpecialChars_TC016() {
     validRequest.setPhoneNumber("091234abcd");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -223,7 +277,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenPhoneNumberDoesNotStartWithZero_TC013() {
+  void process_ValidationFails_WhenPhoneNumberDoesNotStartWithZero_TC017() {
     validRequest.setPhoneNumber("1912345678");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -233,7 +287,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenPhoneNumberIsUnder10Digits_TC014() {
+  void process_ValidationFails_WhenPhoneNumberIsUnder10Digits_TC018() {
     validRequest.setPhoneNumber("091234567");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -243,7 +297,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenPhoneNumberExceeds11Digits_TC015() {
+  void process_ValidationFails_WhenPhoneNumberExceeds11Digits_TC019() {
     validRequest.setPhoneNumber("091234567890");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -257,7 +311,7 @@ public class CreateShopServiceImplTest {
   // =========================================================================
 
   @Test
-  void process_ValidationFails_WhenShopNameIsNull_TC016() {
+  void process_ValidationFails_WhenShopNameIsNull_TC020() {
     validRequest.setShopName(null);
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -266,7 +320,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenShopNameIsBlank_TC017() {
+  void process_ValidationFails_WhenShopNameIsBlank_TC021() {
     validRequest.setShopName("   ");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -275,7 +329,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenShopNameExceeds100Characters_TC018() {
+  void process_ValidationFails_WhenShopNameExceeds100Characters_TC022() {
     validRequest.setShopName("A".repeat(101));
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -284,7 +338,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationSuccess_WhenShopNameHas100Characters_TC018A() {
+  void process_ValidationSuccess_WhenShopNameHas100Characters_TC023() {
     validRequest.setShopName("A".repeat(100));
 
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
@@ -293,7 +347,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenShopNameContainsSpecialCharacters_TC019() {
+  void process_ValidationFails_WhenShopNameContainsSpecialCharacters_TC024() {
     validRequest.setShopName("Hoa Yên Coffee @ 2026!");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -307,7 +361,7 @@ public class CreateShopServiceImplTest {
   // =========================================================================
 
   @Test
-  void process_ValidationFails_WhenAddressIsNull_TC020() {
+  void process_ValidationFails_WhenAddressIsNull_TC025() {
     validRequest.setAddress(null);
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -316,7 +370,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenAddressIsBlank_TC021() {
+  void process_ValidationFails_WhenAddressIsBlank_TC026() {
     validRequest.setAddress(" ");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -325,7 +379,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenAddressExceeds255Characters_TC022() {
+  void process_ValidationFails_WhenAddressExceeds255Characters_TC027() {
     validRequest.setAddress("A".repeat(256));
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -334,7 +388,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationSuccess_WhenAddressHas255Characters_TC022A() {
+  void process_ValidationSuccess_WhenAddressHas255Characters_TC028() {
     validRequest.setAddress("A".repeat(255));
 
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
@@ -343,7 +397,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ValidationFails_WhenAddressContainsInvalidSpecialCharacters_TC023() {
+  void process_ValidationFails_WhenAddressContainsInvalidSpecialCharacters_TC029() {
     validRequest.setAddress("123 Đường 30/4 $ Phường Hưng Lợi * Ninh Kiều");
     Set<ConstraintViolation<CreateShopRequest>> violations = validator.validate(validRequest);
 
@@ -353,7 +407,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_Success_WhenDuplicateChecksReturnNull_TC024() {
+  void process_Success_WhenDuplicateChecksReturnNull_TC030() {
     when(createShopMapper.checkShopExistedByName(anyString())).thenReturn(null);
     when(createShopMapper.checkShopExistedByAddress(anyString())).thenReturn(null);
 
@@ -370,7 +424,7 @@ public class CreateShopServiceImplTest {
   }
 
   @Test
-  void process_ThrowsInvalidRequestException_WhenUserIsNotOwner_TC025() {
+  void process_ThrowsInvalidRequestException_WhenUserIsNotOwner_TC031() {
     InvalidRequestException exception =
         assertThrows(
             InvalidRequestException.class,

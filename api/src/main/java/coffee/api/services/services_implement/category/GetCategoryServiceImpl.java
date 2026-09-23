@@ -34,7 +34,7 @@ public class GetCategoryServiceImpl implements IGetCategoryService {
             request.trimmedSearch(),
             currentUserRoleName,
             currentUserShopId,
-            request.getBranchShopId());
+            request.getShopId());
 
     List<CategoryResult> categories =
         getCategoriesMapper.getCategoriesFiltered(
@@ -45,7 +45,7 @@ public class GetCategoryServiceImpl implements IGetCategoryService {
             request.calcOffset(),
             currentUserRoleName,
             currentUserShopId,
-            request.getBranchShopId());
+            request.getShopId());
 
     if (categories == null) {
       categories = Collections.emptyList();

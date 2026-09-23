@@ -19,7 +19,7 @@ public class SearchCategoriesRequest {
   @Max(value = 100, message = ValidationMessage.Msg.SIZE_MAX)
   private int size = 10;
 
-  private UUID branchShopId;
+  private UUID shopId;
 
   @Size(max = 100, message = ValidationMessage.Msg.SIZE_MAX)
   @Pattern(

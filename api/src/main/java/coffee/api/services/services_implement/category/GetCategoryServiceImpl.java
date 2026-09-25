@@ -31,10 +31,7 @@ public class GetCategoryServiceImpl implements IGetCategoryService {
 
     long totalElements =
         getCategoriesMapper.countCategoriesFiltered(
-            request.trimmedSearch(),
-            currentUserRoleName,
-            currentUserShopId,
-            request.getShopId());
+            request.trimmedSearch(), currentUserRoleName, currentUserShopId, request.getShopId());
 
     List<CategoryResult> categories =
         getCategoriesMapper.getCategoriesFiltered(

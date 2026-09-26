@@ -461,7 +461,8 @@ public class GetCategoryServiceImplTest {
 
   @Test
   void process_ValidationSuccess_WhenSearchContainsVietnameseAndAllowedCharacters_TC015() {
-    validRequest.setSearch("Cà-phê Trà 30");
+    // Allows: Unicode letters, numbers, spaces, and punctuation: - & / ( ) , . '
+    validRequest.setSearch("Cà-phê & Trà (Nóng/Lạnh), Số 1. 'Espresso'");
     Set<ConstraintViolation<SearchCategoriesRequest>> violations = validator.validate(validRequest);
     assertEquals(0, violations.size());
   }
@@ -564,7 +565,7 @@ public class GetCategoryServiceImplTest {
 
   @Test
   void process_ValidationFails_WhenSearchContainsDisallowedSpecialCharacters_TC024() {
-    validRequest.setSearch("Espresso @ 2026!");
+    validRequest.setSearch("Espresso @ 2026! #$%*");
     Set<ConstraintViolation<SearchCategoriesRequest>> violations = validator.validate(validRequest);
 
     assertEquals(1, violations.size());

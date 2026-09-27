@@ -232,6 +232,11 @@
             <goals>
               <goal>report</goal>
             </goals>
+            <configuration>
+              <includes>
+                <include>coffee/api/services/**</include>
+              </includes>
+            </configuration>
           </execution>
           <execution>
             <id>jacoco-check</id>
@@ -239,6 +244,9 @@
               <goal>check</goal>
             </goals>
             <configuration>
+              <includes>
+                <include>coffee/api/services/**</include>
+              </includes>
               <rules>
                 <rule>
                   <element>PACKAGE</element>

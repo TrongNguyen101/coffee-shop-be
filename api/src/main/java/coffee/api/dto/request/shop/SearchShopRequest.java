@@ -1,4 +1,4 @@
-package coffee.api.dto.request.category;
+package coffee.api.dto.request.shop;
 
 import coffee.api.enums.SortDirection;
 import coffee.api.enums.ValidationMessage;
@@ -6,11 +6,10 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.util.UUID;
 import lombok.Data;
 
 @Data
-public class SearchCategoriesRequest {
+public class SearchShopRequest {
 
   @Min(value = 1, message = ValidationMessage.Msg.PAGE_MIN)
   private int page = 1;
@@ -19,19 +18,16 @@ public class SearchCategoriesRequest {
   @Max(value = 100, message = ValidationMessage.Msg.SIZE_MAX)
   private int size = 10;
 
-  private UUID shopId;
-
-  // Allows: Unicode letters, numbers, spaces, and punctuation: - & / ( ) , . '
   @Size(max = 100, message = ValidationMessage.Msg.SIZE_MAX)
   @Pattern(
-      regexp = "^\\s*$|^[\\p{L}\\p{N}\\s&/(),.'\\-]+$",
+      regexp = "^\\s*$|^[\\p{L}0-9\\s.,/&'#-]+$",
       message = ValidationMessage.Msg.SPECIAL_CHARACTERS)
   private String search;
 
   @Pattern(
-      regexp = "^(drinkCategoryId|categoryId|shopId|categoryName|isDeleted)$",
+      regexp = "^(shopId|shopName|address|phoneNumber|createdAt|updatedAt|isDeleted)$",
       message = ValidationMessage.Msg.SORT_BY_INVALID)
-  private String sortBy = "drinkCategoryId";
+  private String sortBy = "shopId";
 
   private SortDirection sortDirection = SortDirection.ASC;
 

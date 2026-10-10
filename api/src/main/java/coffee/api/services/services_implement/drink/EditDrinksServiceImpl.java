@@ -12,6 +12,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -19,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class EditDrinksServiceImpl implements IEditDrinksService {
 
   private final CommonMapper commonMapper;
-  private final UpdateDrinkMapper editDrinkMapper;
+  private final UpdateDrinkMapper updateDrinkMapper;
   private final IFileStorageService fileStorageService;
 
   @Override
@@ -36,10 +38,29 @@ public class EditDrinksServiceImpl implements IEditDrinksService {
       throw new InvalidRequestException("Drink ID is required");
     }
 
-    // 2. Verify authorization and active assignment for MANAGER
+    // 2. Verify drink existence and permission scope
+    boolean isDrinkExisted =
+        commonMapper.checkDrinkExisted(
+            request.getDrinkId(), currentUserRoleName, currentUserShopId);
+    if (!isDrinkExisted) {
+      throw new DataNotFoundException("Data not found", request.getDrinkId());
+    }
+
+    // 3. Retrieve the owner shop of the target drink
+    UUID drinkShopId = updateDrinkMapper.getShopIdByDrinkId(request.getDrinkId());
+    if (drinkShopId == null) {
+      throw new DataNotFoundException("Data not found", request.getDrinkId());
+    }
+
+    // 4. Verify authorization and active assignment for MANAGER
     if (Roles.MANAGER.getValue().equals(currentUserRoleName)) {
       if (currentUserShopId == null) {
         throw new InvalidRequestException("Manager is not assigned to any shop");
+      }
+
+      if (!currentUserShopId.equals(drinkShopId)) {
+        throw new InvalidRequestException(
+            "You do not have permission to edit a drink from another shop");
       }
 
       boolean isShopMember = commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId);
@@ -48,63 +69,66 @@ public class EditDrinksServiceImpl implements IEditDrinksService {
       }
     }
 
-    // 3. Verify drink exists in role/shop scope
-    Boolean isDrinkExisted =
-        commonMapper.checkDrinkExisted(
-            request.getDrinkId(), currentUserRoleName, currentUserShopId);
-    if (Boolean.FALSE.equals(isDrinkExisted)) {
-      throw new DataNotFoundException("Data not found", request.getDrinkId());
+    // 5. Verify that the selected category belongs to the target drink's shop
+    boolean isCategoryBelongsToShop =
+        commonMapper.checkCategoryExistsInShop(request.getDrinkCategoryId(), drinkShopId);
+    if (!isCategoryBelongsToShop) {
+      throw new InvalidRequestException("Category does not belong to the drink's shop");
     }
 
-    // 4. Verify category exists in role/shop scope
-    Boolean isCategoryExisted =
-        commonMapper.checkCategoryExisted(
-            request.getDrinkCategoryId(), currentUserRoleName, currentUserShopId);
-    if (Boolean.FALSE.equals(isCategoryExisted)) {
-      throw new DataNotFoundException("Data not found", request.getDrinkCategoryId());
-    }
-
-    // 5. Validate and normalize input fields
+    // 6. Trim drink name and verify uniqueness in the same shop
     String trimmedDrinkName = request.getDrinkName() != null ? request.getDrinkName().trim() : "";
     request.setDrinkName(trimmedDrinkName);
 
-    boolean isDrinkNameExisted =
-        editDrinkMapper.checkDrinkNameExistedForEdit(request.getDrinkId(), trimmedDrinkName);
-    if (isDrinkNameExisted) {
+    boolean isDrinkNameDuplicated =
+        updateDrinkMapper.checkDrinkNameExistedForEdit(request.getDrinkId(), trimmedDrinkName);
+    if (isDrinkNameDuplicated) {
       throw new InvalidRequestException("Drink name is existed");
     }
 
-    // 6. Determine the image URL to use
-    String imageUrlToUpdate = request.getImageUrl();
+    // 7. Handle image storage with transactional synchronization
+    String storedImageUrl = request.getImageUrl();
 
-    // 7. If a new image file is uploaded, store it and handle old image deletion
     if (imageFile != null && !imageFile.isEmpty()) {
-      String oldImageUrl =
-          editDrinkMapper.getDrinkImageUrl(
-              request.getDrinkId(), currentUserRoleName, currentUserShopId);
+      final String oldImageUrl =
+          updateDrinkMapper.getDrinkImageUrl(
+              request.getDrinkId(), currentUserRoleName, drinkShopId);
 
-      imageUrlToUpdate = fileStorageService.storeDrinkImage(imageFile);
+      final String newStoredImageUrl = fileStorageService.storeDrinkImage(imageFile);
+      storedImageUrl = newStoredImageUrl;
 
-      if (oldImageUrl != null && !oldImageUrl.trim().isEmpty()) {
-        fileStorageService.deleteDrinkImage(oldImageUrl);
+      if (TransactionSynchronizationManager.isSynchronizationActive()) {
+        TransactionSynchronizationManager.registerSynchronization(
+            new TransactionSynchronization() {
+              @Override
+              public void afterCommit() {
+                if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+                  fileStorageService.deleteDrinkImage(oldImageUrl);
+                }
+              }
+
+              @Override
+              public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                  fileStorageService.deleteDrinkImage(newStoredImageUrl);
+                }
+              }
+            });
       }
-    } else {
-      if (imageUrlToUpdate == null || imageUrlToUpdate.trim().isEmpty()) {
-        String currentImageUrl =
-            editDrinkMapper.getDrinkImageUrl(
-                request.getDrinkId(), currentUserRoleName, currentUserShopId);
-        imageUrlToUpdate = currentImageUrl;
-      }
+    } else if (storedImageUrl == null || storedImageUrl.isBlank()) {
+      storedImageUrl =
+          updateDrinkMapper.getDrinkImageUrl(
+              request.getDrinkId(), currentUserRoleName, drinkShopId);
     }
 
     // 8. Update drink
-    editDrinkMapper.updateDrink(
+    updateDrinkMapper.updateDrink(
         request.getDrinkId(),
         trimmedDrinkName,
-        imageUrlToUpdate,
+        storedImageUrl,
         request.getStatus(),
         request.getDrinkCategoryId(),
-        currentUserShopId,
+        drinkShopId,
         currentUserRoleName);
   }
 }

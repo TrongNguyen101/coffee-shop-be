@@ -173,15 +173,18 @@
     )
   </select>
 
-  <!-- 13. Check if table number exists in shop (excluding current table) -->
+  <!-- 13. Check if table number exists in shop (excluding current table when editing) -->
   <select id="checkTableNumberExisted" resultType="boolean">
     SELECT EXISTS (
     SELECT 1
     FROM shop_tables
     WHERE table_number = #{tableNumber}
     AND shop_id = #{shopId}
-    AND table_id != #{tableId}
     AND is_deleted = false
+    AND deleted_at IS NULL
+    <if test="tableId != null">
+      AND table_id != #{tableId}
+    </if>
     <choose>
       <!-- OWNER: Can check any shop -->
       <when test="currentUserRoleName == 'OWNER'">
@@ -192,6 +195,9 @@
       <when test="currentUserRoleName == 'MANAGER'">
         AND shop_id = #{currentUserShopId}
       </when>
+      <otherwise>
+        AND 1 = 0
+      </otherwise>
     </choose>
     )
   </select>

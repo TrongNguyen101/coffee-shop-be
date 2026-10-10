@@ -5,6 +5,7 @@ import coffee.api.dto.response.base_response.ErrorDetail;
 import coffee.api.enums.ResponseCode;
 import coffee.api.enums.Roles;
 import coffee.api.exceptions.DataNotFoundException;
+import coffee.api.exceptions.InvalidRequestException;
 import coffee.api.exceptions.InvalidRequestWithErrorDetailsException;
 import coffee.api.mapper.CommonMapper;
 import coffee.api.mapper.EditTablesMapper;
@@ -14,19 +15,23 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class EditTablesServiceImpl implements IEditTablesService {
+
   private final CommonMapper commonMapper;
   private final EditTablesMapper editTablesMapper;
 
   @Override
+  @Transactional(rollbackFor = Exception.class)
   public void process(
       EditTablesRequest request,
       String currentUserRoleName,
       UUID currentUserId,
       UUID currentUserShopId) {
+
     validateData(request, currentUserRoleName, currentUserId, currentUserShopId);
     editTablesMapper.updateTable(request, currentUserRoleName, currentUserShopId);
   }
@@ -36,39 +41,57 @@ public class EditTablesServiceImpl implements IEditTablesService {
       String currentUserRoleName,
       UUID currentUserId,
       UUID currentUserShopId) {
-    List<ErrorDetail> errors = new ArrayList<>();
 
-    // Validate table exists and user has access
-    Boolean isTableExisted =
+    // 1. Verify request, shop ID and table ID
+    if (request == null || request.getShopId() == null) {
+      throw new InvalidRequestException("Shop ID is required");
+    }
+    if (request.getTableId() == null) {
+      throw new InvalidRequestException("Table ID is required");
+    }
+
+    // 2. Verify table number validity
+    if (request.getTableNumber() == null || request.getTableNumber() <= 0) {
+      throw new InvalidRequestException("Table number must be greater than 0");
+    }
+
+    // 3. Verify shop exists
+    boolean isShopExisted = commonMapper.checkShopExisted(request.getShopId());
+    if (!isShopExisted) {
+      throw new DataNotFoundException("Data not found", request.getShopId());
+    }
+
+    // 4. Verify authorization and active assignment for MANAGER
+    if (Roles.MANAGER.getValue().equals(currentUserRoleName)) {
+      if (currentUserShopId == null) {
+        throw new InvalidRequestException("Manager is not assigned to any shop branch");
+      }
+
+      if (!currentUserShopId.equals(request.getShopId())) {
+        throw new InvalidRequestException("You do not have permission to access this shop branch");
+      }
+
+      boolean isShopMember = commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId);
+      if (!isShopMember) {
+        throw new InvalidRequestException("You do not have permission to access this shop branch");
+      }
+    }
+
+    // 5. Verify table exists and role/shop access
+    boolean isTableExisted =
         commonMapper.checkTableExisted(
             request.getTableId(), currentUserRoleName, currentUserShopId);
-
     if (!isTableExisted) {
-      throw new DataNotFoundException("Table not found", request.getTableId());
+      throw new DataNotFoundException("Data not found", request.getTableId());
     }
 
-    // Validate shop exists
-    Boolean isShopExisted = commonMapper.checkShopExisted(request.getShopId());
-    if (!isShopExisted) {
-      throw new DataNotFoundException("Shop not found", request.getShopId());
-    }
+    // 6. Trim description
+    String trimmedDescription =
+        request.getDescription() != null ? request.getDescription().trim() : null;
+    request.setDescription(trimmedDescription);
 
-    // For MANAGER, validate shop belongs to them
-    if (currentUserRoleName.equals(Roles.MANAGER.getValue())) {
-      Boolean isShopIdIsExist = commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId);
-
-      if (!isShopIdIsExist) {
-        throw new DataNotFoundException("Shop Id not found", currentUserShopId);
-      }
-
-      // MANAGER can only edit tables in their own shop
-      if (!request.getShopId().equals(currentUserShopId)) {
-        throw new DataNotFoundException("Access denied for this shop", request.getShopId());
-      }
-    }
-
-    // Validate table number uniqueness in the shop (excluding current table)
-    Boolean isTableNumberExisted =
+    // 7. Verify duplicate table number in shop
+    boolean isTableNumberExisted =
         commonMapper.checkTableNumberExisted(
             request.getTableId(),
             request.getTableNumber(),
@@ -76,18 +99,11 @@ public class EditTablesServiceImpl implements IEditTablesService {
             currentUserRoleName,
             currentUserShopId);
 
+    List<ErrorDetail> errors = new ArrayList<>();
     if (isTableNumberExisted) {
       ErrorDetail error = new ErrorDetail();
       error.setErrorCode(ResponseCode.CONFLICT.getCode());
       error.setMessage("Table number already exists in this shop");
-      errors.add(error);
-    }
-
-    // Validate status if provided
-    if (request.getStatus() != null && (request.getStatus() < 1 || request.getStatus() > 3)) {
-      ErrorDetail error = new ErrorDetail();
-      error.setErrorCode(ResponseCode.BAD_REQUEST.getCode());
-      error.setMessage("Status must be 1 (available), 2 (occupied), or 3 (reserved)");
       errors.add(error);
     }
 

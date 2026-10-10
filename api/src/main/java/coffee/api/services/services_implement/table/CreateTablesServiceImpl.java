@@ -10,52 +10,73 @@ import coffee.api.services.services_interface.table.ICreateTablesService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class CreateTablesServiceImpl implements ICreateTablesService {
+
   private final CommonMapper commonMapper;
   private final CreateTablesMapper createTablesMapper;
 
   @Override
+  @Transactional(rollbackFor = Exception.class)
   public void process(
-      CreateTablesRequest request, String currentUserRoleName, UUID currentUserShopId) {
-    // Validate role - only OWNER and MANAGER can create tables
-    if (!Roles.OWNER.getValue().equals(currentUserRoleName)
-        && !Roles.MANAGER.getValue().equals(currentUserRoleName)) {
-      throw new InvalidRequestException("Only OWNER and MANAGER can create tables");
+      CreateTablesRequest request,
+      UUID currentUserId,
+      String currentUserRoleName,
+      UUID currentUserShopId) {
+
+    // 1. Verify request and shop ID
+    if (request == null || request.getShopId() == null) {
+      throw new InvalidRequestException("Shop ID is required");
     }
 
-    // Validate shop ID for MANAGER
-    if (Roles.MANAGER.getValue().equals(currentUserRoleName)) {
-      if (!currentUserShopId.equals(request.getShopId())) {
-        throw new InvalidRequestException("Shop Ids are not match profile");
-      }
+    // 2. Verify table number validity
+    if (request.getTableNumber() == null || request.getTableNumber() <= 0) {
+      throw new InvalidRequestException("Table number must be greater than 0");
     }
 
-    // Check if shop exists
-    Boolean isShopExisted = commonMapper.checkShopExisted(request.getShopId());
+    // 3. Verify shop exists
+    boolean isShopExisted = commonMapper.checkShopExisted(request.getShopId());
     if (!isShopExisted) {
       throw new DataNotFoundException("Data not found", request.getShopId());
     }
 
-    // Check if table number already exists in the shop
-    Boolean isTableNumberExisted =
-        createTablesMapper.checkTableNumberExisted(request.getShopId(), request.getTableNumber());
+    // 4. Verify authorization and active assignment for MANAGER
+    if (Roles.MANAGER.getValue().equals(currentUserRoleName)) {
+      if (currentUserShopId == null) {
+        throw new InvalidRequestException("Manager is not assigned to any shop branch");
+      }
+
+      if (!currentUserShopId.equals(request.getShopId())) {
+        throw new InvalidRequestException("You do not have permission to access this shop branch");
+      }
+
+      boolean isShopMember = commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId);
+      if (!isShopMember) {
+        throw new InvalidRequestException("You do not have permission to access this shop branch");
+      }
+    }
+
+    // 5. Trim description and sanitize input
+    String trimmedDescription =
+        request.getDescription() != null ? request.getDescription().trim() : null;
+    request.setDescription(trimmedDescription);
+
+    // 6. Verify table number uniqueness in shop
+    boolean isTableNumberExisted =
+        commonMapper.checkTableNumberExisted(
+            null,
+            request.getTableNumber(),
+            request.getShopId(),
+            currentUserRoleName,
+            currentUserShopId);
     if (isTableNumberExisted) {
       throw new InvalidRequestException("Table number already exists in this shop");
     }
 
-    // Validate status
-    if (request.getStatus() == null || request.getStatus() < 1 || request.getStatus() > 3) {
-      throw new InvalidRequestException(
-          "Status must be 1 (available), 2 (occupied), or 3 (reserved)");
-    }
-
-    createTablesMapper.createTable(
-        request.getTableNumber(),
-        request.getDescription(),
-        request.getStatus(),
-        request.getShopId());
+    // 7. Insert new table record
+    createTablesMapper.createTable(request, currentUserRoleName, currentUserShopId);
   }
 }

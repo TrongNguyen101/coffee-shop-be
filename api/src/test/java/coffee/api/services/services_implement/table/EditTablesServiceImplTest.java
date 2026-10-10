@@ -74,6 +74,8 @@ public class EditTablesServiceImplTest {
     when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
     when(commonMapper.checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId))
         .thenReturn(true);
+    when(commonMapper.checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId()))
+        .thenReturn(true);
     when(commonMapper.checkTableNumberExisted(
             validRequest.getTableId(),
             validRequest.getTableNumber(),
@@ -81,6 +83,7 @@ public class EditTablesServiceImplTest {
             managerRole,
             currentUserShopId))
         .thenReturn(false);
+    when(editTablesMapper.updateTable(validRequest, managerRole, currentUserShopId)).thenReturn(1);
 
     assertDoesNotThrow(
         () ->
@@ -90,6 +93,8 @@ public class EditTablesServiceImplTest {
     verify(commonMapper, times(1)).checkShopIdIsExisted(currentUserId, currentUserShopId);
     verify(commonMapper, times(1))
         .checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId);
+    verify(commonMapper, times(1))
+        .checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId());
     verify(commonMapper, times(1))
         .checkTableNumberExisted(
             validRequest.getTableId(),
@@ -108,6 +113,8 @@ public class EditTablesServiceImplTest {
     when(commonMapper.checkShopExisted(differentShopId)).thenReturn(true);
     when(commonMapper.checkTableExisted(validRequest.getTableId(), ownerRole, currentUserShopId))
         .thenReturn(true);
+    when(commonMapper.checkTableExistsInShop(validRequest.getTableId(), differentShopId))
+        .thenReturn(true);
     when(commonMapper.checkTableNumberExisted(
             validRequest.getTableId(),
             validRequest.getTableNumber(),
@@ -115,6 +122,7 @@ public class EditTablesServiceImplTest {
             ownerRole,
             currentUserShopId))
         .thenReturn(false);
+    when(editTablesMapper.updateTable(validRequest, ownerRole, currentUserShopId)).thenReturn(1);
 
     assertDoesNotThrow(
         () -> editTablesService.process(validRequest, ownerRole, currentUserId, currentUserShopId));
@@ -123,6 +131,8 @@ public class EditTablesServiceImplTest {
     verify(commonMapper, never()).checkShopIdIsExisted(any(), any());
     verify(commonMapper, times(1))
         .checkTableExisted(validRequest.getTableId(), ownerRole, currentUserShopId);
+    verify(commonMapper, times(1))
+        .checkTableExistsInShop(validRequest.getTableId(), differentShopId);
     verify(commonMapper, times(1))
         .checkTableNumberExisted(
             validRequest.getTableId(),
@@ -141,6 +151,8 @@ public class EditTablesServiceImplTest {
     when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
     when(commonMapper.checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId))
         .thenReturn(true);
+    when(commonMapper.checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId()))
+        .thenReturn(true);
     when(commonMapper.checkTableNumberExisted(
             validRequest.getTableId(),
             validRequest.getTableNumber(),
@@ -148,6 +160,7 @@ public class EditTablesServiceImplTest {
             managerRole,
             currentUserShopId))
         .thenReturn(false);
+    when(editTablesMapper.updateTable(validRequest, managerRole, currentUserShopId)).thenReturn(1);
 
     assertDoesNotThrow(
         () ->
@@ -165,6 +178,8 @@ public class EditTablesServiceImplTest {
     when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
     when(commonMapper.checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId))
         .thenReturn(true);
+    when(commonMapper.checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId()))
+        .thenReturn(true);
     when(commonMapper.checkTableNumberExisted(
             validRequest.getTableId(),
             validRequest.getTableNumber(),
@@ -172,6 +187,7 @@ public class EditTablesServiceImplTest {
             managerRole,
             currentUserShopId))
         .thenReturn(false);
+    when(editTablesMapper.updateTable(validRequest, managerRole, currentUserShopId)).thenReturn(1);
 
     assertDoesNotThrow(
         () ->
@@ -286,6 +302,7 @@ public class EditTablesServiceImplTest {
     verify(commonMapper, times(1)).checkShopExisted(validRequest.getShopId());
     verify(commonMapper, never()).checkShopIdIsExisted(any(), any());
     verify(commonMapper, never()).checkTableExisted(any(), any(), any());
+    verify(commonMapper, never()).checkTableExistsInShop(any(), any());
     verifyNoInteractions(editTablesMapper);
   }
 
@@ -367,15 +384,46 @@ public class EditTablesServiceImplTest {
     verify(commonMapper, times(1)).checkShopIdIsExisted(currentUserId, currentUserShopId);
     verify(commonMapper, times(1))
         .checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId);
+    verify(commonMapper, never()).checkTableExistsInShop(any(), any());
     verify(commonMapper, never()).checkTableNumberExisted(any(), any(), any(), any(), any());
     verifyNoInteractions(editTablesMapper);
   }
 
   @Test
-  void process_ThrowsInvalidRequestWithErrorDetailsException_WhenTableNumberAlreadyExists_TC015() {
+  void process_ThrowsInvalidRequestException_WhenTableDoesNotBelongToShopBranch_TC015() {
     when(commonMapper.checkShopExisted(validRequest.getShopId())).thenReturn(true);
     when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
     when(commonMapper.checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId))
+        .thenReturn(true);
+    when(commonMapper.checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId()))
+        .thenReturn(false);
+
+    InvalidRequestException exception =
+        assertThrows(
+            InvalidRequestException.class,
+            () ->
+                editTablesService.process(
+                    validRequest, managerRole, currentUserId, currentUserShopId));
+
+    assertEquals("Table does not belong to this shop branch", exception.getMessage());
+
+    verify(commonMapper, times(1)).checkShopExisted(validRequest.getShopId());
+    verify(commonMapper, times(1)).checkShopIdIsExisted(currentUserId, currentUserShopId);
+    verify(commonMapper, times(1))
+        .checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId);
+    verify(commonMapper, times(1))
+        .checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId());
+    verify(commonMapper, never()).checkTableNumberExisted(any(), any(), any(), any(), any());
+    verifyNoInteractions(editTablesMapper);
+  }
+
+  @Test
+  void process_ThrowsInvalidRequestWithErrorDetailsException_WhenTableNumberAlreadyExists_TC016() {
+    when(commonMapper.checkShopExisted(validRequest.getShopId())).thenReturn(true);
+    when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
+    when(commonMapper.checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId))
+        .thenReturn(true);
+    when(commonMapper.checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId()))
         .thenReturn(true);
     when(commonMapper.checkTableNumberExisted(
             validRequest.getTableId(),
@@ -404,10 +452,43 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void process_ThrowsDataAccessException_WhenDatabaseUpdateFails_TC016() {
+  void process_ThrowsDataNotFoundException_WhenAffectedRowsIsZero_TC017() {
     when(commonMapper.checkShopExisted(validRequest.getShopId())).thenReturn(true);
     when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
     when(commonMapper.checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId))
+        .thenReturn(true);
+    when(commonMapper.checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId()))
+        .thenReturn(true);
+    when(commonMapper.checkTableNumberExisted(
+            validRequest.getTableId(),
+            validRequest.getTableNumber(),
+            validRequest.getShopId(),
+            managerRole,
+            currentUserShopId))
+        .thenReturn(false);
+    when(editTablesMapper.updateTable(validRequest, managerRole, currentUserShopId)).thenReturn(0);
+
+    DataNotFoundException exception =
+        assertThrows(
+            DataNotFoundException.class,
+            () ->
+                editTablesService.process(
+                    validRequest, managerRole, currentUserId, currentUserShopId));
+
+    assertEquals(
+        "Table has already been deleted or modified by another request", exception.getMessage());
+    assertEquals(validRequest.getTableId(), exception.getId());
+
+    verify(editTablesMapper, times(1)).updateTable(validRequest, managerRole, currentUserShopId);
+  }
+
+  @Test
+  void process_ThrowsDataAccessException_WhenDatabaseUpdateFails_TC018() {
+    when(commonMapper.checkShopExisted(validRequest.getShopId())).thenReturn(true);
+    when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
+    when(commonMapper.checkTableExisted(validRequest.getTableId(), managerRole, currentUserShopId))
+        .thenReturn(true);
+    when(commonMapper.checkTableExistsInShop(validRequest.getTableId(), validRequest.getShopId()))
         .thenReturn(true);
     when(commonMapper.checkTableNumberExisted(
             validRequest.getTableId(),
@@ -438,27 +519,27 @@ public class EditTablesServiceImplTest {
   // =========================================================================
 
   @Test
-  void requestValidation_Success_WhenAllFieldsAreValid_TC017() {
+  void requestValidation_Success_WhenAllFieldsAreValid_TC019() {
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
     assertEquals(0, violations.size());
   }
 
   @Test
-  void requestValidation_Success_WhenDescriptionIsNull_TC018() {
+  void requestValidation_Success_WhenDescriptionIsNull_TC020() {
     validRequest.setDescription(null);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
     assertEquals(0, violations.size());
   }
 
   @Test
-  void requestValidation_Success_WhenDescriptionContainsVietnameseAndAllowedCharacters_TC019() {
+  void requestValidation_Success_WhenDescriptionContainsVietnameseAndAllowedCharacters_TC021() {
     validRequest.setDescription("Bàn VIP (Cửa Sổ) & Ban Công - Tầng 2, Khu B. 'Espresso'");
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
     assertEquals(0, violations.size());
   }
 
   @Test
-  void requestValidation_Success_WhenStatusIsWithinRange_TC020() {
+  void requestValidation_Success_WhenStatusIsWithinRange_TC022() {
     validRequest.setStatus(1);
     assertEquals(0, validator.validate(validRequest).size());
 
@@ -470,7 +551,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Success_WhenTableNumberIsBoundaryValue_TC021() {
+  void requestValidation_Success_WhenTableNumberIsBoundaryValue_TC023() {
     validRequest.setTableNumber(1);
     assertEquals(0, validator.validate(validRequest).size());
 
@@ -483,7 +564,7 @@ public class EditTablesServiceImplTest {
   // =========================================================================
 
   @Test
-  void requestValidation_Fails_WhenTableIdIsNull_TC022() {
+  void requestValidation_Fails_WhenTableIdIsNull_TC024() {
     validRequest.setTableId(null);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -492,7 +573,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenShopIdIsNull_TC023() {
+  void requestValidation_Fails_WhenShopIdIsNull_TC025() {
     validRequest.setShopId(null);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -501,7 +582,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenTableNumberIsNull_TC024() {
+  void requestValidation_Fails_WhenTableNumberIsNull_TC026() {
     validRequest.setTableNumber(null);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -510,7 +591,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenTableNumberIsLessThanOne_TC025() {
+  void requestValidation_Fails_WhenTableNumberIsLessThanOne_TC027() {
     validRequest.setTableNumber(0);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -519,7 +600,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenTableNumberExceeds9999_TC026() {
+  void requestValidation_Fails_WhenTableNumberExceeds9999_TC028() {
     validRequest.setTableNumber(10000);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -532,7 +613,7 @@ public class EditTablesServiceImplTest {
   // =========================================================================
 
   @Test
-  void requestValidation_Fails_WhenStatusIsNull_TC027() {
+  void requestValidation_Fails_WhenStatusIsNull_TC029() {
     validRequest.setStatus(null);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -541,7 +622,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenStatusIsLessThanOne_TC028() {
+  void requestValidation_Fails_WhenStatusIsLessThanOne_TC030() {
     validRequest.setStatus(0);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -550,7 +631,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenStatusExceedsThree_TC029() {
+  void requestValidation_Fails_WhenStatusExceedsThree_TC031() {
     validRequest.setStatus(4);
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -559,7 +640,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenDescriptionExceeds255Characters_TC030() {
+  void requestValidation_Fails_WhenDescriptionExceeds255Characters_TC032() {
     validRequest.setDescription("A".repeat(256));
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -568,7 +649,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenDescriptionContainsDisallowedCharacters_TC031() {
+  void requestValidation_Fails_WhenDescriptionContainsDisallowedCharacters_TC033() {
     validRequest.setDescription("Bàn VIP @ Cửa Sổ <script>!");
     Set<ConstraintViolation<EditTablesRequest>> violations = validator.validate(validRequest);
 
@@ -578,7 +659,7 @@ public class EditTablesServiceImplTest {
   }
 
   @Test
-  void requestValidation_Fails_WhenAllFieldsAreNull_TC032() {
+  void requestValidation_Fails_WhenAllFieldsAreNull_TC034() {
     EditTablesRequest emptyRequest = new EditTablesRequest();
     emptyRequest.setTableId(null);
     emptyRequest.setShopId(null);

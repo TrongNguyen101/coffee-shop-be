@@ -33,7 +33,14 @@ public class EditTablesServiceImpl implements IEditTablesService {
       UUID currentUserShopId) {
 
     validateData(request, currentUserRoleName, currentUserId, currentUserShopId);
-    editTablesMapper.updateTable(request, currentUserRoleName, currentUserShopId);
+
+    // Update table record and verify affected rows
+    int affectedRows =
+        editTablesMapper.updateTable(request, currentUserRoleName, currentUserShopId);
+    if (affectedRows == 0) {
+      throw new DataNotFoundException(
+          "Table has already been deleted or modified by another request", request.getTableId());
+    }
   }
 
   private void validateData(
@@ -85,12 +92,19 @@ public class EditTablesServiceImpl implements IEditTablesService {
       throw new DataNotFoundException("Data not found", request.getTableId());
     }
 
-    // 6. Trim description
+    // 6. Verify table belongs to the specified shop branch (prevent cross-branch transfer)
+    boolean isTableInShop =
+        commonMapper.checkTableExistsInShop(request.getTableId(), request.getShopId());
+    if (!isTableInShop) {
+      throw new InvalidRequestException("Table does not belong to this shop branch");
+    }
+
+    // 7. Trim description
     String trimmedDescription =
         request.getDescription() != null ? request.getDescription().trim() : null;
     request.setDescription(trimmedDescription);
 
-    // 7. Verify duplicate table number in shop
+    // 8. Verify duplicate table number in shop
     boolean isTableNumberExisted =
         commonMapper.checkTableNumberExisted(
             request.getTableId(),

@@ -11,6 +11,7 @@ import coffee.api.exceptions.DataNotFoundException;
 import coffee.api.exceptions.InvalidRequestException;
 import coffee.api.mapper.CommonMapper;
 import coffee.api.mapper.CreateTablesMapper;
+import coffee.api.services.services_implement.table.common.TableValidator;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -20,7 +21,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
@@ -32,7 +32,7 @@ public class CreateTablesServiceImplTest {
 
   @Mock private CreateTablesMapper createTablesMapper;
 
-  @InjectMocks private CreateTablesServiceImpl createTablesService;
+  private CreateTablesServiceImpl createTablesService;
 
   private Validator validator;
   private CreateTablesRequest validRequest;
@@ -47,6 +47,10 @@ public class CreateTablesServiceImplTest {
     try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
       validator = factory.getValidator();
     }
+
+    TableValidator tableValidator = new TableValidator(commonMapper);
+    createTablesService =
+        new CreateTablesServiceImpl(commonMapper, createTablesMapper, tableValidator);
 
     currentUserShopId = UUID.randomUUID();
     currentUserId = UUID.randomUUID();
@@ -334,6 +338,7 @@ public class CreateTablesServiceImplTest {
     validRequest.setShopId(differentShopId);
 
     when(commonMapper.checkShopExisted(differentShopId)).thenReturn(true);
+    when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
 
     InvalidRequestException exception =
         assertThrows(
@@ -345,7 +350,7 @@ public class CreateTablesServiceImplTest {
     assertEquals("You do not have permission to access this shop branch", exception.getMessage());
 
     verify(commonMapper, times(1)).checkShopExisted(differentShopId);
-    verify(commonMapper, never()).checkShopIdIsExisted(any(), any());
+    verify(commonMapper, times(1)).checkShopIdIsExisted(currentUserId, currentUserShopId);
   }
 
   @Test

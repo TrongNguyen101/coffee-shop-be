@@ -14,6 +14,7 @@ import coffee.api.exceptions.InvalidRequestException;
 import coffee.api.exceptions.InvalidRequestWithErrorDetailsException;
 import coffee.api.mapper.CommonMapper;
 import coffee.api.mapper.EditTablesMapper;
+import coffee.api.services.services_implement.table.common.TableValidator;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -23,7 +24,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
@@ -35,7 +35,7 @@ public class EditTablesServiceImplTest {
 
   @Mock private EditTablesMapper editTablesMapper;
 
-  @InjectMocks private EditTablesServiceImpl editTablesService;
+  private EditTablesServiceImpl editTablesService;
 
   private Validator validator;
   private EditTablesRequest validRequest;
@@ -51,6 +51,9 @@ public class EditTablesServiceImplTest {
     }
 
     currentUserId = UUID.randomUUID();
+    TableValidator tableValidator = new TableValidator(commonMapper);
+    editTablesService = new EditTablesServiceImpl(commonMapper, editTablesMapper, tableValidator);
+
     currentUserShopId = UUID.randomUUID();
 
     validRequest = new EditTablesRequest();
@@ -328,6 +331,7 @@ public class EditTablesServiceImplTest {
     validRequest.setShopId(differentShopId);
 
     when(commonMapper.checkShopExisted(differentShopId)).thenReturn(true);
+    when(commonMapper.checkShopIdIsExisted(currentUserId, currentUserShopId)).thenReturn(true);
 
     InvalidRequestException exception =
         assertThrows(
@@ -339,7 +343,7 @@ public class EditTablesServiceImplTest {
     assertEquals("You do not have permission to access this shop branch", exception.getMessage());
 
     verify(commonMapper, times(1)).checkShopExisted(differentShopId);
-    verify(commonMapper, never()).checkShopIdIsExisted(any(), any());
+    verify(commonMapper, times(1)).checkShopIdIsExisted(currentUserId, currentUserShopId);
     verifyNoInteractions(editTablesMapper);
   }
 

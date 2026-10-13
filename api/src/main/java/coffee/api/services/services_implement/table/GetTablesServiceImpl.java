@@ -28,37 +28,61 @@ public class GetTablesServiceImpl implements IGetTablesService {
       UUID currentUserId) {
 
     // 1. Manager or Staff must have an assigned shop branch
+    verifyShopBranchAssignment(currentUserRoleName, currentUserShopId);
+
+    // 2. Count total elements matching filter criteria
+    long totalElements = countTables(request, currentUserRoleName, currentUserShopId);
+
+    // 3. Fetch paginated tables list
+    List<TableResult> tables = fetchTables(request, currentUserRoleName, currentUserShopId);
+
+    // 4. Map readable status names and mask audit fields for STAFF
+    enrichAndMaskTableResults(tables, currentUserRoleName);
+
+    // 5. Build pagination metadata
+    PaginationMeta pagination = buildPaginationMeta(request, totalElements);
+
+    return PageResponse.of("Get tables successfully", tables, pagination);
+  }
+
+  private void verifyShopBranchAssignment(String currentUserRoleName, UUID currentUserShopId) {
     if (!Roles.OWNER.getValue().equals(currentUserRoleName) && currentUserShopId == null) {
       throw new InvalidRequestException("User is not assigned to any shop branch");
     }
+  }
 
-    // 2. Count total elements matching filter criteria
-    long totalElements =
-        getTablesMapper.countTablesFiltered(
-            request.trimmedSearch(),
-            request.getStatus(),
-            currentUserRoleName,
-            currentUserShopId,
-            request.getShopId());
+  private long countTables(
+      SearchTablesRequest request, String currentUserRoleName, UUID currentUserShopId) {
+    return getTablesMapper.countTablesFiltered(
+        request.trimmedSearch(),
+        request.getStatus(),
+        currentUserRoleName,
+        currentUserShopId,
+        request.getShopId());
+  }
 
-    // 3. Fetch paginated tables list
+  private List<TableResult> fetchTables(
+      SearchTablesRequest request, String currentUserRoleName, UUID currentUserShopId) {
+
+    String sortDirection =
+        request.getSortDirection() != null ? request.getSortDirection().toString() : "ASC";
+
     List<TableResult> tables =
         getTablesMapper.getTablesFiltered(
             request.trimmedSearch(),
             request.getStatus(),
             request.getSortBy(),
-            request.getSortDirection() != null ? request.getSortDirection().toString() : "ASC",
+            sortDirection,
             request.getSize(),
             request.calcOffset(),
             currentUserRoleName,
             currentUserShopId,
             request.getShopId());
 
-    if (tables == null) {
-      tables = Collections.emptyList();
-    }
+    return tables != null ? tables : Collections.emptyList();
+  }
 
-    // 4. Map readable status names and mask audit fields for STAFF
+  private void enrichAndMaskTableResults(List<TableResult> tables, String currentUserRoleName) {
     boolean isStaff = Roles.STAFF.getValue().equals(currentUserRoleName);
     tables.forEach(
         table -> {
@@ -68,17 +92,15 @@ public class GetTablesServiceImpl implements IGetTablesService {
             table.setUpdatedAt(null);
           }
         });
+  }
 
-    // 5. Build pagination metadata
-    PaginationMeta pagination =
-        PaginationMeta.builder()
-            .page(request.getPage())
-            .size(request.getSize())
-            .totalElements(totalElements)
-            .totalPages(request.totalPages(totalElements))
-            .build();
-
-    return PageResponse.of("Get tables successfully", tables, pagination);
+  private PaginationMeta buildPaginationMeta(SearchTablesRequest request, long totalElements) {
+    return PaginationMeta.builder()
+        .page(request.getPage())
+        .size(request.getSize())
+        .totalElements(totalElements)
+        .totalPages(request.totalPages(totalElements))
+        .build();
   }
 
   private String getStatusName(Integer status) {

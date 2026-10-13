@@ -11,6 +11,7 @@ import coffee.api.exceptions.DataNotFoundException;
 import coffee.api.exceptions.InvalidRequestException;
 import coffee.api.mapper.CommonMapper;
 import coffee.api.mapper.DeleteTablesMapper;
+import coffee.api.services.services_implement.table.common.TableValidator;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -20,7 +21,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
@@ -32,7 +32,7 @@ public class DeleteTablesServiceImplTest {
 
   @Mock private DeleteTablesMapper deleteTablesMapper;
 
-  @InjectMocks private DeleteTablesServiceImpl deleteTablesService;
+  private DeleteTablesServiceImpl deleteTablesService;
 
   private Validator validator;
   private DeleteTablesRequest validRequest;
@@ -46,6 +46,9 @@ public class DeleteTablesServiceImplTest {
     try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
       validator = factory.getValidator();
     }
+
+    TableValidator tableValidator = new TableValidator(commonMapper);
+    deleteTablesService = new DeleteTablesServiceImpl(deleteTablesMapper, tableValidator);
 
     currentUserShopId = UUID.randomUUID();
     currentUserId = UUID.randomUUID();

@@ -7,14 +7,15 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface UpdateDrinkMapper {
 
+  boolean checkDrinkNameExistedForEdit(
+      @Param("drinkId") UUID drinkId, @Param("drinkName") String drinkName);
+
   void updateDrink(
       @Param("drinkId") UUID drinkId,
       @Param("drinkName") String drinkName,
       @Param("imageUrl") String imageUrl,
       @Param("status") Integer status,
       @Param("drinkCategoryId") UUID drinkCategoryId,
-      @Param("price") Float price,
-      @Param("size") String size,
       @Param("shopId") UUID shopId,
       @Param("currentUserRoleName") String currentUserRoleName);
 
@@ -22,4 +23,6 @@ public interface UpdateDrinkMapper {
       @Param("drinkId") UUID drinkId,
       @Param("currentUserRoleName") String currentUserRoleName,
       @Param("currentUserShopId") UUID currentUserShopId);
+
+  UUID getShopIdByDrinkId(@Param("drinkId") UUID drinkId);
 }

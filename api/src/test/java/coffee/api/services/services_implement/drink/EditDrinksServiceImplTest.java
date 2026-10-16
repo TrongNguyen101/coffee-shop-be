@@ -227,6 +227,40 @@ class EditDrinksServiceImplTest {
   }
 
   @Test
+  void
+      process_Success_WhenNewImageUploadedAndOldImageIsNull_DoesNotDeleteOldImageOnCommit_TC003_NullOldImage() {
+    MockMultipartFile newImageFile =
+        new MockMultipartFile("image", "new_drink.jpg", "image/jpeg", "fake-image".getBytes());
+    String newUploadedUrl = "https://example.com/drinks/new_image.png";
+
+    when(commonMapper.checkDrinkExisted(drinkId, Roles.OWNER.getValue(), currentUserShopId))
+        .thenReturn(true);
+    when(editDrinkMapper.getShopIdByDrinkId(drinkId)).thenReturn(drinkShopId);
+    when(commonMapper.checkCategoryExistsInShop(drinkCategoryId, drinkShopId)).thenReturn(true);
+    when(editDrinkMapper.checkDrinkNameExistedForEdit(drinkId, "Cà Phê Muối Đặc Biệt"))
+        .thenReturn(false);
+    when(editDrinkMapper.getDrinkImageUrl(drinkId, Roles.OWNER.getValue(), drinkShopId))
+        .thenReturn(null);
+    when(fileStorageService.storeDrinkImage(newImageFile)).thenReturn(newUploadedUrl);
+
+    assertDoesNotThrow(
+        () ->
+            editDrinksService.process(
+                validRequest,
+                newImageFile,
+                currentUserId,
+                Roles.OWNER.getValue(),
+                currentUserShopId));
+
+    List<TransactionSynchronization> syncs =
+        TransactionSynchronizationManager.getSynchronizations();
+    assertFalse(syncs.isEmpty());
+    syncs.forEach(TransactionSynchronization::afterCommit);
+
+    verify(fileStorageService, never()).deleteDrinkImage(anyString());
+  }
+
+  @Test
   void process_Success_WhenNewImageUploadedAndRolledBack_CleansUpNewImage_TC003A() {
     MockMultipartFile newImageFile =
         new MockMultipartFile("image", "new_drink.jpg", "image/jpeg", "fake-image".getBytes());

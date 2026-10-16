@@ -8,7 +8,6 @@ import coffee.api.mapper.CreateDrinkMapper;
 import coffee.api.services.services_implement.drink.common.DrinkValidator;
 import coffee.api.services.services_interface.common.IFileStorageService;
 import coffee.api.services.services_interface.drink.ICreateDrinkService;
-import coffee.api.utils.DrinkImageHelper;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -58,9 +57,7 @@ public class CreateDrinkServiceImpl implements ICreateDrinkService {
     request.setSize(size);
 
     // 6. Resolve image upload or fallback URL
-    String storedImageUrl =
-        DrinkImageHelper.resolveImageForCreate(
-            imageFile, request.getImageUrl(), fileStorageService);
+    String storedImageUrl = resolveImageForCreate(imageFile, request.getImageUrl());
 
     // 7. Insert new drink and drink detail records
     insertDrinkWithDetail(request, trimmedDrinkName, storedImageUrl, size);
@@ -81,6 +78,13 @@ public class CreateDrinkServiceImpl implements ICreateDrinkService {
     if (isDrinkExisted) {
       throw new InvalidRequestException("Drink name is existed");
     }
+  }
+
+  private String resolveImageForCreate(MultipartFile imageFile, String defaultImageUrl) {
+    if (imageFile != null && !imageFile.isEmpty()) {
+      return fileStorageService.storeDrinkImage(imageFile);
+    }
+    return defaultImageUrl;
   }
 
   private void insertDrinkWithDetail(

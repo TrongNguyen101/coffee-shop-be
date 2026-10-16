@@ -7,11 +7,12 @@ import coffee.api.mapper.UpdateDrinkMapper;
 import coffee.api.services.services_implement.drink.common.DrinkValidator;
 import coffee.api.services.services_interface.common.IFileStorageService;
 import coffee.api.services.services_interface.drink.IEditDrinksService;
-import coffee.api.utils.DrinkImageHelper;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -59,14 +60,12 @@ public class EditDrinksServiceImpl implements IEditDrinksService {
 
     // 7. Resolve image upload or fallback URL
     String storedImageUrl =
-        DrinkImageHelper.resolveImageForEdit(
+        resolveImageForEdit(
             imageFile,
             request.getImageUrl(),
             request.getDrinkId(),
             currentUserRoleName,
-            drinkShopId,
-            updateDrinkMapper,
-            fileStorageService);
+            drinkShopId);
 
     // 8. Update drink record
     updateDrinkMapper.updateDrink(
@@ -99,5 +98,50 @@ public class EditDrinksServiceImpl implements IEditDrinksService {
     if (isDrinkNameDuplicated) {
       throw new InvalidRequestException("Drink name is existed");
     }
+  }
+
+  private String resolveImageForEdit(
+      MultipartFile imageFile,
+      String requestedImageUrl,
+      UUID drinkId,
+      String currentUserRoleName,
+      UUID drinkShopId) {
+
+    if (imageFile != null && !imageFile.isEmpty()) {
+      String oldImageUrl =
+          updateDrinkMapper.getDrinkImageUrl(drinkId, currentUserRoleName, drinkShopId);
+      return handleUploadedImageWithSync(imageFile, oldImageUrl);
+    }
+
+    if (requestedImageUrl == null || requestedImageUrl.isBlank()) {
+      return updateDrinkMapper.getDrinkImageUrl(drinkId, currentUserRoleName, drinkShopId);
+    }
+
+    return requestedImageUrl;
+  }
+
+  private String handleUploadedImageWithSync(MultipartFile imageFile, String oldImageUrl) {
+    final String newStoredImageUrl = fileStorageService.storeDrinkImage(imageFile);
+
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+              if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+                fileStorageService.deleteDrinkImage(oldImageUrl);
+              }
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+              if (status == STATUS_ROLLED_BACK) {
+                fileStorageService.deleteDrinkImage(newStoredImageUrl);
+              }
+            }
+          });
+    }
+
+    return newStoredImageUrl;
   }
 }

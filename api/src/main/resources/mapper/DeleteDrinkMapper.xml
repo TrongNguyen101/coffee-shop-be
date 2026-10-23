@@ -5,11 +5,23 @@
 
 <mapper namespace="coffee.api.mapper.DeleteDrinkMapper">
 
+  <!-- Soft-delete all active variants and prices belonging to the drink -->
+  <update id="softDeleteDrinkDetails">
+    UPDATE drink_details
+    SET deleted_at = NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh',
+    deleted_by = #{deletedBy}
+    WHERE drink_id = #{drinkId}
+    AND deleted_at IS NULL
+  </update>
+
   <update id="deleteDrink">
     UPDATE drinks
-    SET is_deleted = TRUE
+    SET deleted_at = NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh',
+    is_deleted = TRUE,
+    deleted_by = #{deletedBy}
     WHERE drink_id = #{drinkId}
     AND is_deleted = FALSE
+    AND deleted_at IS NULL
     <choose>
       <!-- OWNER can soft-delete drinks across all shops -->
       <when test="currentUserRoleName == 'OWNER'">
@@ -20,6 +32,9 @@
       <when test="currentUserRoleName == 'MANAGER'">
         AND shop_id = #{currentUserShopId}
       </when>
+      <otherwise>
+        AND 1 = 0
+      </otherwise>
     </choose>
   </update>
 

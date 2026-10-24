@@ -65,7 +65,7 @@ public class DrinkDetailValidator {
   /** Normalize and validate a drink detail size without relying on drink-domain validation. */
   public String validateAndFormatSize(String size) {
     String formattedSize = size == null ? "" : size.trim().toUpperCase();
-    if (!Set.of("S", "M", "L", "XL", "XXL").contains(formattedSize)) {
+    if (!Set.of("S", "M", "L").contains(formattedSize)) {
       throw new InvalidRequestException("Drink detail size is invalid");
     }
     return formattedSize;

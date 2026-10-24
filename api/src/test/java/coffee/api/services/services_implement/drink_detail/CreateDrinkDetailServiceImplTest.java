@@ -527,7 +527,7 @@ class CreateDrinkDetailServiceImplTest {
     DrinkDetailValidator realValidator = createRealDrinkDetailValidator();
 
     // Act & Assert
-    assertEquals("XL", realValidator.validateAndFormatSize(" xl "));
+    assertEquals("L", realValidator.validateAndFormatSize(" l "));
   }
 
   @Test
@@ -539,8 +539,6 @@ class CreateDrinkDetailServiceImplTest {
     assertEquals("S", realValidator.validateAndFormatSize("S"));
     assertEquals("M", realValidator.validateAndFormatSize("M"));
     assertEquals("L", realValidator.validateAndFormatSize("L"));
-    assertEquals("XL", realValidator.validateAndFormatSize("XL"));
-    assertEquals("XXL", realValidator.validateAndFormatSize("XXL"));
   }
 
   @Test
@@ -558,7 +556,9 @@ class CreateDrinkDetailServiceImplTest {
     DrinkDetailValidator realValidator = createRealDrinkDetailValidator();
 
     // Act & Assert
-    assertThrows(InvalidRequestException.class, () -> realValidator.validateAndFormatSize("XXXL"));
+    for (String size : new String[] {"XL", "XXL", "XXXL"}) {
+      assertThrows(InvalidRequestException.class, () -> realValidator.validateAndFormatSize(size));
+    }
   }
 
   // =========================================================================
@@ -641,7 +641,7 @@ class CreateDrinkDetailServiceImplTest {
 
   @Test
   void request_ValidationSuccess_ForAllSupportedSizes_TC035() {
-    for (String size : new String[] {"S", "M", "L", "XL", "XXL"}) {
+    for (String size : new String[] {"S", "M", "L"}) {
 
       validRequest.setSize(size);
 
@@ -696,13 +696,15 @@ class CreateDrinkDetailServiceImplTest {
 
   @Test
   void request_ValidationFails_WhenSizeIsUnsupported_TC040() {
-    validRequest.setSize("XXXL");
+    for (String size : new String[] {"XL", "XXL", "XXXL"}) {
+      validRequest.setSize(size);
 
-    Set<ConstraintViolation<CreateDrinkDetailRequest>> violations =
-        requestValidator.validate(validRequest);
+      Set<ConstraintViolation<CreateDrinkDetailRequest>> violations =
+          requestValidator.validate(validRequest);
 
-    assertTrue(
-        hasCreateRequestViolation(violations, "size", ValidationMessage.Msg.SPECIAL_CHARACTERS));
+      assertTrue(
+          hasCreateRequestViolation(violations, "size", ValidationMessage.Msg.SPECIAL_CHARACTERS));
+    }
   }
 
   @Test

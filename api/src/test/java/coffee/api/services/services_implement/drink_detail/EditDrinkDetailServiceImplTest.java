@@ -375,7 +375,7 @@ class EditDrinkDetailServiceImplTest {
 
   @Test
   void request_ValidationSuccess_ForAllSupportedSizes_TC015() {
-    for (String size : new String[] {"S", "M", "L", "XL", "XXL"}) {
+    for (String size : new String[] {"S", "M", "L"}) {
 
       validRequest.setSize(size);
 
@@ -430,13 +430,15 @@ class EditDrinkDetailServiceImplTest {
 
   @Test
   void request_ValidationFails_WhenSizeIsUnsupported_TC020() {
-    validRequest.setSize("XXXL");
+    for (String size : new String[] {"XL", "XXL", "XXXL"}) {
+      validRequest.setSize(size);
 
-    Set<ConstraintViolation<EditDrinkDetailRequest>> violations =
-        requestValidator.validate(validRequest);
+      Set<ConstraintViolation<EditDrinkDetailRequest>> violations =
+          requestValidator.validate(validRequest);
 
-    assertTrue(
-        hasEditRequestViolation(violations, "size", ValidationMessage.Msg.SPECIAL_CHARACTERS));
+      assertTrue(
+          hasEditRequestViolation(violations, "size", ValidationMessage.Msg.SPECIAL_CHARACTERS));
+    }
   }
 
   @Test

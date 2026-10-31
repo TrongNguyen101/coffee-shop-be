@@ -12,6 +12,8 @@ public interface CommonMapper {
 
   UUID lockOccupiedInvoiceTable(@Param("tableId") UUID tableId, @Param("shopId") UUID shopId);
 
+  boolean hasUnpaidTableInvoices(@Param("tableId") UUID tableId);
+
   int releaseInvoiceTable(@Param("tableId") UUID tableId, @Param("shopId") UUID shopId);
 
   boolean checkDrinkNameExisted(

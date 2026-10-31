@@ -40,7 +40,7 @@ public class StatusInvoiceServiceImpl implements IStatusInvoiceService {
           "Invoice status cannot be updated. Please reload and try again");
     }
 
-    // 4. Release the table after the invoice status changes successfully
+    // 4. Release the table only after all invoices on it are paid or cancelled
     invoiceValidator.releaseInvoiceTable(invoice.getTableId(), invoice.getShopId());
   }
 

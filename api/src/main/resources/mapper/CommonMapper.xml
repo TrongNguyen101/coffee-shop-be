@@ -248,11 +248,7 @@
     AND is_deleted = FALSE
     AND status = 2
     AND NOT EXISTS (
-      SELECT 1 FROM invoices i
-      WHERE i.table_id = #{tableId}
-      AND i.deleted_at IS NULL
-      AND i.is_deleted = FALSE
-      AND i.status = 0
+      <include refid="coffee.api.mapper.CommonMapper.activeUnpaidTableInvoicesSql"/>
     )
   </sql>
 
@@ -270,4 +266,20 @@
   <update id="releaseInvoiceTable">
     <include refid="releaseInvoiceTableSql"/>
   </update>
+
+  <!-- 21. Shared SQL for active unpaid invoices on the table -->
+  <sql id="activeUnpaidTableInvoicesSql">
+    SELECT 1 FROM invoices i
+    WHERE i.table_id = #{tableId}
+    AND i.deleted_at IS NULL
+    AND i.is_deleted = FALSE
+    AND i.status = 0
+  </sql>
+
+  <!-- 22. Keep the table occupied when another unpaid invoice remains -->
+  <select id="hasUnpaidTableInvoices" resultType="boolean">
+    SELECT EXISTS (
+      <include refid="coffee.api.mapper.CommonMapper.activeUnpaidTableInvoicesSql"/>
+    )
+  </select>
 </mapper>

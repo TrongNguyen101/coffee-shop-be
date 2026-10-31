@@ -53,8 +53,11 @@ public class InvoiceValidator {
     }
   }
 
-  /** Release the table only when no unpaid invoice still uses it. */
+  /** Keep the table occupied while other unpaid invoices use it; otherwise release it. */
   public void releaseInvoiceTable(UUID tableId, UUID shopId) {
+    if (commonMapper.hasUnpaidTableInvoices(tableId)) {
+      return;
+    }
     if (commonMapper.releaseInvoiceTable(tableId, shopId) != 1) {
       throw new InvalidRequestException("Table cannot be released. Please reload and try again");
     }

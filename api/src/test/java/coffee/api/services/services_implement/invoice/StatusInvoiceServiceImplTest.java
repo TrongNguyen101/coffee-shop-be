@@ -99,6 +99,7 @@ class StatusInvoiceServiceImplTest {
   }
 
   private void stubTableRelease() {
+    when(commonMapper.hasUnpaidTableInvoices(existingInvoice.getTableId())).thenReturn(false);
     when(commonMapper.releaseInvoiceTable(existingInvoice.getTableId(), currentShopId))
         .thenReturn(1);
   }
@@ -201,6 +202,7 @@ class StatusInvoiceServiceImplTest {
         .verify(commonMapper)
         .lockOccupiedInvoiceTable(existingInvoice.getTableId(), currentShopId);
     order.verify(statusInvoiceMapper).updateInvoiceStatus(invoiceId, currentShopId, targetStatus);
+    order.verify(commonMapper).hasUnpaidTableInvoices(existingInvoice.getTableId());
     order.verify(commonMapper).releaseInvoiceTable(existingInvoice.getTableId(), currentShopId);
   }
 
@@ -238,13 +240,39 @@ class StatusInvoiceServiceImplTest {
     verify(commonMapper, never()).checkShopIdIsExisted(any(), any());
   }
 
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2})
+  void process_KeepsTableOccupiedWhenAnotherUnpaidInvoiceRemains_TC008(int targetStatus) {
+    validRequest.setStatus(targetStatus);
+    stubShopPermission("OWNER");
+    stubOccupiedTable();
+    when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
+    when(statusInvoiceMapper.updateInvoiceStatus(invoiceId, currentShopId, targetStatus))
+        .thenReturn(1);
+    when(commonMapper.hasUnpaidTableInvoices(existingInvoice.getTableId())).thenReturn(true);
+
+    statusInvoiceService.process(validRequest, "OWNER", currentShopId, currentProfileId);
+
+    var savedStatus = org.mockito.ArgumentCaptor.forClass(Integer.class);
+    verify(statusInvoiceMapper)
+        .updateInvoiceStatus(
+            org.mockito.ArgumentMatchers.eq(invoiceId),
+            org.mockito.ArgumentMatchers.eq(currentShopId),
+            savedStatus.capture());
+    assertEquals(targetStatus, savedStatus.getValue());
+    var order = org.mockito.Mockito.inOrder(statusInvoiceMapper, commonMapper);
+    order.verify(statusInvoiceMapper).updateInvoiceStatus(invoiceId, currentShopId, targetStatus);
+    order.verify(commonMapper).hasUnpaidTableInvoices(existingInvoice.getTableId());
+    verify(commonMapper, never()).releaseInvoiceTable(any(), any());
+  }
+
   // =========================================================================
   // SERVICE PROCESS - ABNORMAL / STATUS & PERMISSION CASES
   // =========================================================================
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_ThrowsDataNotFoundException_WhenInvoiceNotFound_TC008(int targetStatus) {
+  void process_ThrowsDataNotFoundException_WhenInvoiceNotFound_TC009(int targetStatus) {
     validRequest.setStatus(targetStatus);
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(null);
 
@@ -260,7 +288,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_ThrowsInvalidRequestException_WhenRoleIsInvalid_TC009(int targetStatus) {
+  void process_ThrowsInvalidRequestException_WhenRoleIsInvalid_TC010(int targetStatus) {
     validRequest.setStatus(targetStatus);
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
 
@@ -274,7 +302,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_ThrowsInvalidRequestException_WhenStaffUserIdIsNull_TC010(int targetStatus) {
+  void process_ThrowsInvalidRequestException_WhenStaffUserIdIsNull_TC011(int targetStatus) {
     stubShopPermission("OWNER");
     validRequest.setStatus(targetStatus);
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
@@ -289,7 +317,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_ThrowsInvalidRequestException_WhenUserIsNotInvoiceCreator_TC011(int targetStatus) {
+  void process_ThrowsInvalidRequestException_WhenUserIsNotInvoiceCreator_TC012(int targetStatus) {
     stubShopPermission("OWNER");
     validRequest.setStatus(targetStatus);
     UUID otherProfileId = UUID.fromString("00000000-0000-0000-0000-000000000403");
@@ -307,7 +335,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_ThrowsInvalidRequestException_WhenStaffShopDiffers_TC012(int targetStatus) {
+  void process_ThrowsInvalidRequestException_WhenStaffShopDiffers_TC013(int targetStatus) {
     validRequest.setStatus(targetStatus);
     UUID otherShopId = UUID.fromString("00000000-0000-0000-0000-000000000404");
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
@@ -323,7 +351,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_ThrowsInvalidRequestException_WhenStaffShopIsNull_TC013(int targetStatus) {
+  void process_ThrowsInvalidRequestException_WhenStaffShopIsNull_TC014(int targetStatus) {
     validRequest.setStatus(targetStatus);
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
 
@@ -337,7 +365,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @CsvSource({"1, 1", "1, 2", "2, 1", "2, 2"})
-  void process_ThrowsInvalidRequestException_WhenInvoiceAlreadyCompletedOrCancelled_TC014(
+  void process_ThrowsInvalidRequestException_WhenInvoiceAlreadyCompletedOrCancelled_TC015(
       int targetStatus, String storedStatus) {
     stubShopPermission("OWNER");
     validRequest.setStatus(targetStatus);
@@ -358,7 +386,7 @@ class StatusInvoiceServiceImplTest {
   @ParameterizedTest
   @NullSource
   @ValueSource(ints = {-1, 0, 3})
-  void process_RejectsInvalidTargetStatusBeforeQuery_TC015(Integer status) {
+  void process_RejectsInvalidTargetStatusBeforeQuery_TC016(Integer status) {
     validRequest.setStatus(status);
 
     var error =
@@ -374,7 +402,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @CsvSource({"1, false", "1,", "2, false", "2,"})
-  void process_RejectsDeletedShop_TC016(int targetStatus, Boolean databaseResult) {
+  void process_RejectsDeletedShop_TC017(int targetStatus, Boolean databaseResult) {
     validRequest.setStatus(targetStatus);
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
     when(commonMapper.checkShopExisted(currentShopId)).thenReturn(databaseResult);
@@ -391,7 +419,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @CsvSource({"1, false", "1,", "2, false", "2,"})
-  void process_RejectsInactiveShopMembership_TC017(int targetStatus, Boolean databaseResult) {
+  void process_RejectsInactiveShopMembership_TC018(int targetStatus, Boolean databaseResult) {
     stubShopPermission("OWNER");
     validRequest.setStatus(targetStatus);
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
@@ -410,7 +438,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_RejectsInvoiceWithoutCreatorForStaff_TC018(int targetStatus) {
+  void process_RejectsInvoiceWithoutCreatorForStaff_TC019(int targetStatus) {
     validRequest.setStatus(targetStatus);
     existingInvoice.setProfileId(null);
     stubShopPermission("STAFF");
@@ -434,7 +462,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_RejectsUnavailableTable_TC019(int targetStatus) {
+  void process_RejectsUnavailableTable_TC020(int targetStatus) {
     stubShopPermission("OWNER");
     validRequest.setStatus(targetStatus);
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
@@ -453,7 +481,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_RejectsMissingTable_TC020(int targetStatus) {
+  void process_RejectsMissingTable_TC021(int targetStatus) {
     stubShopPermission("OWNER");
     validRequest.setStatus(targetStatus);
     existingInvoice.setTableId(null);
@@ -474,7 +502,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_RejectsFailedTableRelease_TC021(int targetStatus) {
+  void process_RejectsFailedTableRelease_TC022(int targetStatus) {
     stubShopPermission("OWNER");
     stubOccupiedTable();
     validRequest.setStatus(targetStatus);
@@ -498,7 +526,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @CsvSource({"1, 0", "1, 2", "1, -1", "2, 0", "2, 2", "2, -1"})
-  void process_ThrowsInvalidRequestException_WhenUnexpectedRowsAffected_TC022(
+  void process_ThrowsInvalidRequestException_WhenUnexpectedRowsAffected_TC023(
       int targetStatus, int rowsAffected) {
     stubShopPermission("OWNER");
     stubOccupiedTable();
@@ -520,7 +548,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_ThrowsDataAccessException_WhenDatabaseFails_TC023(int targetStatus) {
+  void process_ThrowsDataAccessException_WhenDatabaseFails_TC024(int targetStatus) {
     stubShopPermission("OWNER");
     stubOccupiedTable();
     validRequest.setStatus(targetStatus);
@@ -540,7 +568,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_PropagatesInvoiceLockFailure_TC024(int targetStatus) {
+  void process_PropagatesInvoiceLockFailure_TC025(int targetStatus) {
     validRequest.setStatus(targetStatus);
     when(commonMapper.lockInvoice(invoiceId))
         .thenThrow(new DataAccessException("Invoice lock failed") {});
@@ -559,7 +587,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_PropagatesTableLockFailure_TC025(int targetStatus) {
+  void process_PropagatesTableLockFailure_TC026(int targetStatus) {
     validRequest.setStatus(targetStatus);
     stubShopPermission("OWNER");
     when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
@@ -580,7 +608,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void process_PropagatesTableReleaseFailure_TC026(int targetStatus) {
+  void process_PropagatesTableReleaseFailure_TC027(int targetStatus) {
     validRequest.setStatus(targetStatus);
     stubShopPermission("OWNER");
     stubOccupiedTable();
@@ -601,13 +629,37 @@ class StatusInvoiceServiceImplTest {
     verify(statusInvoiceMapper).updateInvoiceStatus(invoiceId, currentShopId, targetStatus);
   }
 
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2})
+  void process_PropagatesRemainingInvoiceQueryFailure_TC028(int targetStatus) {
+    validRequest.setStatus(targetStatus);
+    stubShopPermission("OWNER");
+    stubOccupiedTable();
+    when(commonMapper.lockInvoice(invoiceId)).thenReturn(existingInvoice);
+    when(statusInvoiceMapper.updateInvoiceStatus(invoiceId, currentShopId, targetStatus))
+        .thenReturn(1);
+    when(commonMapper.hasUnpaidTableInvoices(existingInvoice.getTableId()))
+        .thenThrow(new DataAccessException("Remaining invoice query failed") {});
+
+    var error =
+        assertThrows(
+            DataAccessException.class,
+            () ->
+                statusInvoiceService.process(
+                    validRequest, "OWNER", currentShopId, currentProfileId));
+
+    assertEquals("Remaining invoice query failed", error.getMessage());
+    verify(statusInvoiceMapper).updateInvoiceStatus(invoiceId, currentShopId, targetStatus);
+    verify(commonMapper, never()).releaseInvoiceTable(any(), any());
+  }
+
   // =========================================================================
   // REQUEST BEAN VALIDATION - NORMAL CASES
   // =========================================================================
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void requestValidation_AcceptsPaidAndCancelledStatus_TC027(int status) {
+  void requestValidation_AcceptsPaidAndCancelledStatus_TC029(int status) {
     validRequest.setStatus(status);
 
     assertEquals(0, validator.validate(validRequest).size());
@@ -619,7 +671,7 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {1, 2})
-  void requestValidation_RejectsMissingInvoiceId_TC028(int status) {
+  void requestValidation_RejectsMissingInvoiceId_TC030(int status) {
     validRequest.setStatus(status);
     validRequest.setInvoiceId(null);
 
@@ -627,7 +679,7 @@ class StatusInvoiceServiceImplTest {
   }
 
   @Test
-  void requestValidation_RejectsMissingStatus_TC029() {
+  void requestValidation_RejectsMissingStatus_TC031() {
     validRequest.setStatus(null);
 
     assertSingleViolation("status", ValidationMessage.Msg.FIELD_REQUIRED);
@@ -635,14 +687,14 @@ class StatusInvoiceServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 3})
-  void requestValidation_RejectsStatusOutsideAllowedRange_TC030(int status) {
+  void requestValidation_RejectsStatusOutsideAllowedRange_TC032(int status) {
     validRequest.setStatus(status);
 
     assertSingleViolation("status", ValidationMessage.Msg.STATUS_INVALID);
   }
 
   @Test
-  void requestValidation_RejectsBothMissingFields_TC031() {
+  void requestValidation_RejectsBothMissingFields_TC033() {
     validRequest.setInvoiceId(null);
     validRequest.setStatus(null);
 

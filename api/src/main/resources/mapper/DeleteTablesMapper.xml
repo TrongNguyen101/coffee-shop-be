@@ -9,7 +9,7 @@
     UPDATE shop_tables
     SET
     is_deleted = true,
-    deleted_at = CURRENT_TIMESTAMP
+    deleted_at = CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh'
     WHERE table_id = #{tableId}
 
     <choose>

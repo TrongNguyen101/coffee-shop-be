@@ -233,9 +233,11 @@ The REST API uses the `/api` servlet prefix. Requests and responses use JSON, ex
 | Retrieve drink details  | `GET /api/drink/detail/{drinkId}`                 | Path parameter                                                      |
 | Create / edit a drink   | `POST /api/drink/create`, `PUT /api/drink/edit`   | `multipart/form-data`: JSON part `data`, optional file part `image` |
 | Create an invoice       | `POST /api/invoice/create`                        | JSON request DTO                                                    |
-| Pay / cancel an invoice | `PUT /api/invoice/pay`, `PUT /api/invoice/cancel` | JSON request DTO                                                    |
+| Pay / cancel an invoice | `PUT /api/invoice/status` | JSON request DTO                                                    |
 
 ---
+
+Payment and cancellation share `PUT /api/invoice/status`. Send `{"invoiceId":"<uuid>","status":1}` to pay or `{"invoiceId":"<uuid>","status":2}` to cancel. Only unpaid invoices (`status = 0`) can transition; the invoice update and table release run in one transaction. This replaces `/api/invoice/pay` and `/api/invoice/cancel`.
 
 ## API Documentation & Responses
 

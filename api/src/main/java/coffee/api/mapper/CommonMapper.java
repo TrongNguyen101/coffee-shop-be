@@ -21,6 +21,11 @@ public interface CommonMapper {
       @Param("drinkName") String drinkName,
       @Param("shopId") UUID shopId);
 
+  boolean checkDrinkDetailSizeExisted(
+      @Param("drinkId") UUID drinkId,
+      @Param("size") String size,
+      @Param("excludedDrinkDetailId") UUID excludedDrinkDetailId);
+
   Boolean checkStaffExisted(@Param("profileId") UUID profileId);
 
   Boolean checkStaffExistedByUsername(@Param("username") String username);
@@ -60,6 +65,8 @@ public interface CommonMapper {
       @Param("tableId") UUID tableId,
       @Param("currentUserRoleName") String currentUserRoleName,
       @Param("currentUserShopId") UUID currentUserShopId);
+
+  Boolean checkTableExistsInShop(@Param("tableId") UUID tableId, @Param("shopId") UUID shopId);
 
   Boolean checkTableNumberExisted(
       @Param("tableId") UUID tableId,

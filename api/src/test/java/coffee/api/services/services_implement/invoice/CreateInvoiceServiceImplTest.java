@@ -81,6 +81,7 @@ class CreateInvoiceServiceImplTest {
     validRequest = new CreateInvoiceRequest();
     validRequest.setShopId(shopId);
     validRequest.setTableId(tableId);
+    validRequest.setStatus(0);
     validRequest.setItems(
         new ArrayList<>(
             List.of(
@@ -835,7 +836,13 @@ class CreateInvoiceServiceImplTest {
   void requestValidation_Fails_WhenAllTopLevelFieldsAreNull_TC067() {
     CreateInvoiceRequest empty = new CreateInvoiceRequest();
     Set<ConstraintViolation<CreateInvoiceRequest>> violations = validator.validate(empty);
-    assertEquals(3, violations.size());
+    assertEquals(4, violations.size());
+  }
+
+  @Test
+  void requestValidation_Fails_WhenStatusIsMissing() {
+    validRequest.setStatus(null);
+    assertSingleViolation("status", ValidationMessage.Msg.FIELD_REQUIRED);
   }
 
   @Test

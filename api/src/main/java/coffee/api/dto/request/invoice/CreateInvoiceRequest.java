@@ -19,11 +19,11 @@ public class CreateInvoiceRequest {
   @NotNull(message = ValidationMessage.Msg.FIELD_REQUIRED)
   private UUID tableId;
 
-  // 0 = pay later, 1 = paid at the counter.
+  // Required, no default: 0 = pay later, 1 = paid up front at the counter.
   @NotNull(message = ValidationMessage.Msg.FIELD_REQUIRED)
   @Min(value = 0, message = ValidationMessage.Msg.STATUS_INVALID)
   @Max(value = 1, message = ValidationMessage.Msg.STATUS_INVALID)
-  private Integer status = 0;
+  private Integer status;
 
   @NotEmpty(message = ValidationMessage.Msg.FIELD_REQUIRED)
   @Valid

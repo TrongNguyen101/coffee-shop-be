@@ -453,6 +453,20 @@ class EditInvoiceServiceImplTest {
   }
 
   @Test
+  void process_Success_WhenCurrentTableIsAvailable_OccupiesItAgain() {
+    stubInvoice(ownerRole);
+    when(updateMapper.lockOccupiedTable(tableId, shopId)).thenReturn(null);
+    when(updateMapper.occupyCurrentTable(tableId, shopId, request.getInvoiceId())).thenReturn(1);
+    stubPrices("25000.00");
+    when(updateMapper.updateInvoice(any(), any(), any(), any())).thenReturn(1);
+    when(createMapper.insertInvoiceDetails(any(), any())).thenReturn(1);
+
+    assertDoesNotThrow(() -> process(ownerRole));
+
+    verify(updateMapper).occupyCurrentTable(tableId, shopId, request.getInvoiceId());
+  }
+
+  @Test
   void process_ThrowsInvalidRequestException_WhenTargetTableIsOccupiedOrUnavailable_TC023() {
     stubInvoice(ownerRole);
     when(updateMapper.lockOccupiedTable(tableId, shopId)).thenReturn(tableId);

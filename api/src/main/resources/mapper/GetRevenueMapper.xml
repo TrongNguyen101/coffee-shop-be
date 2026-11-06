@@ -29,7 +29,7 @@
     </collection>
   </resultMap>
 
-  <!-- 3. Share paid invoice and shop filters between count and list queries -->
+  <!-- 3. Share paid invoice and shop filters between count, list and total queries -->
   <sql id="revenueFilterCondition">
     i.deleted_at IS NULL
     AND i.is_deleted = FALSE
@@ -62,23 +62,23 @@
       AND i.created_at &lt;= #{endDateTime}
     </if>
 
-    <!-- 9. Search invoice code, invoice ID, shop, staff, table number and drink name (deleted drinks included) -->
+    <!-- 9. Search invoice, shop, staff, table and drink name (deleted drinks included) -->
     <if test="search != null and search != ''">
       AND (
-      i.invoice_code ILIKE CONCAT('%', #{search}, '%')
-      OR i.invoice_id::text ILIKE CONCAT('%', #{search}, '%')
-      OR s.shop_name ILIKE CONCAT('%', #{search}, '%')
-      OR p.full_name ILIKE CONCAT('%', #{search}, '%')
-      OR st.table_number::text ILIKE CONCAT('%', #{search}, '%')
-      OR EXISTS (
-        SELECT 1
-        FROM invoice_details sid
-        JOIN drink_details sdd ON sid.drink_detail_id = sdd.drink_detail_id
-        JOIN drinks sd ON sdd.drink_id = sd.drink_id
-        WHERE sid.invoice_id = i.invoice_id
-        AND sid.deleted_at IS NULL
-        AND sd.drink_name ILIKE CONCAT('%', #{search}, '%')
-      )
+        i.invoice_code ILIKE CONCAT('%', #{search}, '%')
+        OR i.invoice_id::text ILIKE CONCAT('%', #{search}, '%')
+        OR s.shop_name ILIKE CONCAT('%', #{search}, '%')
+        OR p.full_name ILIKE CONCAT('%', #{search}, '%')
+        OR st.table_number::text ILIKE CONCAT('%', #{search}, '%')
+        OR EXISTS (
+          SELECT 1
+          FROM invoice_details sid
+          JOIN drink_details sdd ON sid.drink_detail_id = sdd.drink_detail_id
+          JOIN drinks sd ON sdd.drink_id = sd.drink_id
+          WHERE sid.invoice_id = i.invoice_id
+            AND sid.deleted_at IS NULL
+            AND sd.drink_name ILIKE CONCAT('%', #{search}, '%')
+        )
       )
     </if>
   </sql>
@@ -98,34 +98,34 @@
   <!-- 11. Fetch paid invoices and their drinks -->
   <select id="getRevenueFiltered" resultMap="RevenueResultMap">
     SELECT
-    pi.invoice_id,
-    pi.invoice_code,
-    pi.shop_id,
-    pi.shop_name,
-    pi.staff_name,
-    pi.table_number,
-    pi.total_amount,
-    pi.created_at,
-    id.invoice_detail_id,
-    id.drink_detail_id,
-    dd.drink_id,
-    d.drink_name,
-    dd.size,
-    id.quantity,
-    id.unit_price,
-    (id.unit_price * id.quantity) AS item_total,
-    id.note
+      pi.invoice_id,
+      pi.invoice_code,
+      pi.shop_id,
+      pi.shop_name,
+      pi.staff_name,
+      pi.table_number,
+      pi.total_amount,
+      pi.created_at,
+      id.invoice_detail_id,
+      id.drink_detail_id,
+      dd.drink_id,
+      d.drink_name,
+      dd.size,
+      id.quantity,
+      id.unit_price,
+      (id.unit_price * id.quantity) AS item_total,
+      id.note
     <!-- 12. Sort and paginate invoices in a subquery before joining their detail rows -->
     FROM (
       SELECT
-      i.invoice_id,
-      i.invoice_code,
-      i.shop_id,
-      s.shop_name,
-      p.full_name AS staff_name,
-      st.table_number,
-      i.total_amount,
-      i.created_at
+        i.invoice_id,
+        i.invoice_code,
+        i.shop_id,
+        s.shop_name,
+        p.full_name AS staff_name,
+        st.table_number,
+        i.total_amount,
+        i.created_at
       FROM invoices i
       JOIN shops s ON i.shop_id = s.shop_id
       LEFT JOIN profiles p ON i.profile_id = p.profile_id
@@ -150,12 +150,12 @@
 
       LIMIT #{size} OFFSET #{offset}
     ) pi
-    <!-- 13. Join active invoice details and retain historical drink information -->
+    <!-- 13. Join active invoice details and keep deleted drinks for history -->
     LEFT JOIN invoice_details id ON pi.invoice_id = id.invoice_id
       AND id.deleted_at IS NULL
     LEFT JOIN drink_details dd ON id.drink_detail_id = dd.drink_detail_id
     LEFT JOIN drinks d ON dd.drink_id = d.drink_id
-    <!-- 14. Preserve invoice ordering and order detail rows within each invoice -->
+    <!-- 14. Keep invoice order and order the drinks within each invoice -->
     ORDER BY
     <choose>
       <when test="sortBy == 'invoiceId'">pi.invoice_id</when>
@@ -170,6 +170,18 @@
       <otherwise>DESC</otherwise>
     </choose>,
     id.invoice_detail_id ASC
+  </select>
+
+  <!-- 15. Sum the total amount of all matching paid invoices on every page -->
+  <select id="getRevenueTotal" resultType="java.math.BigDecimal">
+    SELECT COALESCE(SUM(i.total_amount), 0)
+    FROM invoices i
+    JOIN shops s ON i.shop_id = s.shop_id
+    LEFT JOIN profiles p ON i.profile_id = p.profile_id
+    LEFT JOIN shop_tables st ON st.table_id = i.table_id
+    <where>
+      <include refid="revenueFilterCondition"/>
+    </where>
   </select>
 
 </mapper>

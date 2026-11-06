@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 import coffee.api.constants.ErrorMessage;
 import coffee.api.constants.ValidationMessage;
 import coffee.api.dto.request.revenue.SearchRevenueRequest;
-import coffee.api.dto.response.base_response.PageResponse;
+import coffee.api.dto.response.revenue.GetRevenueResponse;
 import coffee.api.dto.result.RevenueResult;
 import coffee.api.enums.SortDirection;
 import coffee.api.exceptions.DataNotFoundException;
@@ -98,9 +98,11 @@ public class GetRevenueServiceImplTest {
     when(getRevenueMapper.getRevenueFiltered(
             null, target, null, null, null, "createdAt", "DESC", 10, 0, role, shopId))
         .thenReturn(rows);
+    when(getRevenueMapper.getRevenueTotal(null, target, null, null, null, role, shopId))
+        .thenReturn(new BigDecimal("99000.00"));
   }
 
-  private PageResponse<RevenueResult> process(String role) {
+  private GetRevenueResponse process(String role) {
     return service.process(request, role, shopId, userId);
   }
 
@@ -131,6 +133,7 @@ public class GetRevenueServiceImplTest {
     assertEquals(10, response.getPagination().getSize());
     assertEquals(1L, response.getPagination().getTotalElements());
     assertEquals(1, response.getPagination().getTotalPages());
+    assertEquals(new BigDecimal("99000.00"), response.getTotalRevenue());
   }
 
   @Test
@@ -179,6 +182,9 @@ public class GetRevenueServiceImplTest {
     assertTrue(response.getItems().isEmpty());
     assertEquals(0L, response.getPagination().getTotalElements());
     assertEquals(0, response.getPagination().getTotalPages());
+    assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalRevenue()));
+    verify(getRevenueMapper, never())
+        .getRevenueTotal(any(), any(), any(), any(), any(), any(), any());
     verify(getRevenueMapper, never())
         .getRevenueFiltered(
             any(), any(), any(), any(), any(), any(), any(), anyInt(), anyInt(), any(), any());
@@ -226,12 +232,49 @@ public class GetRevenueServiceImplTest {
             "MANAGER",
             shopId))
         .thenReturn(List.of(sample));
+    when(getRevenueMapper.getRevenueTotal(
+            "Cà Phê", shopId, invoiceId, start, end, "MANAGER", shopId))
+        .thenReturn(new BigDecimal("580000.00"));
 
     var response = process("MANAGER");
 
+    assertEquals(new BigDecimal("580000.00"), response.getTotalRevenue());
     assertEquals(3, response.getPagination().getPage());
     assertEquals(45L, response.getPagination().getTotalElements());
     assertEquals(3, response.getPagination().getTotalPages());
+  }
+
+  @Test
+  void process_NullTotalResultFallsBackToZero_TC035() {
+    stubShopPermission(shopId, "MANAGER");
+    stubResults("MANAGER", shopId, 1, List.of(sample));
+    when(getRevenueMapper.getRevenueTotal(null, shopId, null, null, null, "MANAGER", shopId))
+        .thenReturn(null);
+
+    var response = process("MANAGER");
+
+    assertEquals(BigDecimal.ZERO, response.getTotalRevenue());
+    assertEquals(1, response.getItems().size());
+  }
+
+  @Test
+  void process_TotalCoversWholePeriod_NotOnlyCurrentPage_TC037() {
+    request.setPage(2);
+    request.setSize(1);
+    stubShopPermission(shopId, "MANAGER");
+    when(getRevenueMapper.countRevenueFiltered(null, shopId, null, null, null, "MANAGER", shopId))
+        .thenReturn(5L);
+    when(getRevenueMapper.getRevenueFiltered(
+            null, shopId, null, null, null, "createdAt", "DESC", 1, 1, "MANAGER", shopId))
+        .thenReturn(List.of(sample));
+    when(getRevenueMapper.getRevenueTotal(null, shopId, null, null, null, "MANAGER", shopId))
+        .thenReturn(new BigDecimal("145000.00"));
+
+    var response = process("MANAGER");
+
+    assertEquals(1, response.getItems().size());
+    assertEquals(new BigDecimal("145000.00"), response.getTotalRevenue());
+    assertEquals(5L, response.getPagination().getTotalElements());
   }
 
   // =========================================================================

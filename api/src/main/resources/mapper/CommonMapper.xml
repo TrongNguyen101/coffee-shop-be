@@ -261,13 +261,18 @@
     <include refid="releaseInvoiceTableSql"/>
   </update>
 
-  <!-- 21. Shared SQL for active unpaid invoices on the table -->
-  <sql id="activeUnpaidTableInvoicesSql">
-    SELECT 1 FROM invoices i
-    WHERE i.table_id = #{tableId}
+  <!-- 21. Shared conditions for active unpaid invoices (alias "i" = invoices) -->
+  <sql id="activeUnpaidInvoiceConditions">
     AND i.deleted_at IS NULL
     AND i.is_deleted = FALSE
     AND i.status = 0
+  </sql>
+
+  <!-- 21b. Shared SQL for active unpaid invoices on the table -->
+  <sql id="activeUnpaidTableInvoicesSql">
+    SELECT 1 FROM invoices i
+    WHERE i.table_id = #{tableId}
+    <include refid="coffee.api.mapper.CommonMapper.activeUnpaidInvoiceConditions"/>
   </sql>
 
   <!-- 22. Keep the table occupied when another unpaid invoice remains -->

@@ -181,7 +181,7 @@ class EditTablesServiceImplTest {
         () -> editTablesService.process(validRequest, ownerRole, currentUserId, currentUserShopId));
 
     verify(editTablesMapper).updateTable(validRequest, ownerRole, currentUserShopId);
-    verify(editTablesMapper, never()).hasPendingInvoicesByTable(any());
+    verify(commonMapper, never()).hasUnpaidTableInvoices(any());
   }
 
   @ParameterizedTest
@@ -202,7 +202,7 @@ class EditTablesServiceImplTest {
             currentUserShopId))
         .thenReturn(false);
     when(editTablesMapper.updateTable(validRequest, ownerRole, currentUserShopId)).thenReturn(0);
-    when(editTablesMapper.hasPendingInvoicesByTable(validRequest.getTableId())).thenReturn(true);
+    when(commonMapper.hasUnpaidTableInvoices(validRequest.getTableId())).thenReturn(true);
 
     InvalidRequestException exception =
         assertThrows(
@@ -213,7 +213,7 @@ class EditTablesServiceImplTest {
 
     assertEquals(
         "Can not change table status while pending invoices exist", exception.getMessage());
-    verify(editTablesMapper).hasPendingInvoicesByTable(validRequest.getTableId());
+    verify(commonMapper).hasUnpaidTableInvoices(validRequest.getTableId());
   }
 
   @Test
